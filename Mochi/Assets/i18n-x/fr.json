@@ -29,6 +29,7 @@
  "x.in_donut": "Dans l'anneau",
  "x.language": "Langue",
  "x.keep_tray": "Rester dans la zone de notification à la fermeture",
+ "x.start_login": "Start with Windows, so the donut is always ready",
  "x.built_in": "Intégré",
  "x.ready_at": "Prêt · {0}",
  "x.not_installed": "Non installé",

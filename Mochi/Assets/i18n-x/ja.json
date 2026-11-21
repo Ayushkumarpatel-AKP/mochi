@@ -29,6 +29,7 @@
  "x.in_donut": "ドーナツに入れる",
  "x.language": "言語",
  "x.keep_tray": "閉じてもトレイで動作を続ける",
+ "x.start_login": "Start with Windows, so the donut is always ready",
  "x.built_in": "内蔵",
  "x.ready_at": "準備完了 · {0}",
  "x.not_installed": "未インストール",

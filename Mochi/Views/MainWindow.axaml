@@ -604,6 +604,10 @@
               <TextBlock Text="{Binding T[x.keep_tray]}" VerticalAlignment="Center" />
               <ToggleSwitch Grid.Column="1" IsChecked="{Binding CloseToTray}" OnContent="" OffContent="" />
             </Grid>
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="{Binding T[x.start_login]}" VerticalAlignment="Center" />
+              <ToggleSwitch Grid.Column="1" IsChecked="{Binding StartWithWindows}" OnContent="" OffContent="" />
+            </Grid>
             <TextBlock Text="{Binding T[x.output_folder]}" Classes="headline" />
             <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
               <TextBlock Text="{Binding OutputFolderLabel}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Classes="secondary" />

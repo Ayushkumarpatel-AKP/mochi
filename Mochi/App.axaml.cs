@@ -81,6 +81,7 @@ public partial class App : Application
         Settings = Settings.Load();
         Loc.Load(Settings.Language);
         Ai.SeedUi();
+        Autostart.Apply(Settings.StartWithWindows);
         ApplyTheme();
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime d)

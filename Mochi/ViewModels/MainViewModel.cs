@@ -307,6 +307,7 @@ public partial class MainViewModel : ObservableObject
         set { App.Settings.Language = Languages[Math.Max(0, value)]; App.Settings.Save(); ApplyLanguage(); OnPropertyChanged(); }
     }
     public bool CloseToTray { get => App.Settings.CloseToTray; set { App.Settings.CloseToTray = value; App.Settings.Save(); } }
+    public bool StartWithWindows { get => App.Settings.StartWithWindows; set { App.Settings.StartWithWindows = value; App.Settings.Save(); Autostart.Apply(value); } }
     public bool TriggersEnabled { get => App.Settings.TriggersEnabled; set { App.Settings.TriggersEnabled = value; App.Settings.Save(); } }
     public int Modifier
     {

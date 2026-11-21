@@ -29,6 +29,7 @@
  "x.in_donut": "Nella ciambella",
  "x.language": "Lingua",
  "x.keep_tray": "Resta nell'area di notifica alla chiusura",
+ "x.start_login": "Start with Windows, so the donut is always ready",
  "x.built_in": "Integrato",
  "x.ready_at": "Pronto · {0}",
  "x.not_installed": "Non installato",

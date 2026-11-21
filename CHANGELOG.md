@@ -7,6 +7,14 @@ Newest first. Every release also gets a page in `Mochi/Assets/Guide/whatsnew/<ve
 
 <!-- New things go here while you work, then move under a version heading when you release. -->
 
+## 1.1.5
+
+### Fixed
+- **Mochi now starts with Windows.** It waits quietly in the tray from login, so the donut is ready without opening the app each time. Before, this depended on an installer option that was easy to miss or skip.
+
+### Added
+- A **Start with Windows** switch in Settings, General (on by default).
+
 ## 1.1.4
 
 ### Fixed

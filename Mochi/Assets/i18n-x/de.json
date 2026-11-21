@@ -29,6 +29,7 @@
  "x.in_donut": "Im Ringmenü",
  "x.language": "Sprache",
  "x.keep_tray": "Im Infobereich weiterlaufen, wenn geschlossen",
+ "x.start_login": "Start with Windows, so the donut is always ready",
  "x.built_in": "Eingebaut",
  "x.ready_at": "Bereit · {0}",
  "x.not_installed": "Nicht installiert",

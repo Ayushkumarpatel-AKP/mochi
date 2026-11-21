@@ -29,6 +29,7 @@
  "x.in_donut": "В кольце",
  "x.language": "Язык",
  "x.keep_tray": "Оставаться в трее при закрытии",
+ "x.start_login": "Start with Windows, so the donut is always ready",
  "x.built_in": "Встроено",
  "x.ready_at": "Готово · {0}",
  "x.not_installed": "Не установлено",

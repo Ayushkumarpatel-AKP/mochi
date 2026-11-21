@@ -72,6 +72,7 @@ public sealed class Settings
     public bool TriggersEnabled { get; set; } = true;
     public string TriggerModifier { get; set; } = "Alt or Shift";   // Alt | Ctrl | Shift | Alt or Shift
     public bool CloseToTray { get; set; } = true;
+    public bool StartWithWindows { get; set; } = true;   // Mochi waits in the tray from login, so the donut is always there
     public List<string> DisabledFields { get; set; } = new();
     public List<WatchEntry> Watch { get; set; } = new();
     public List<string> EngineOrder { get; set; } = new();

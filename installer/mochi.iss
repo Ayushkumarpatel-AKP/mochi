@@ -1,6 +1,6 @@
 ; Mochi setup. Build with:  installer\build.ps1
 #define AppName "Mochi"
-#define AppVersion "1.1.4"
+#define AppVersion "1.1.5"
 
 [Setup]
 AppId={{6F1C2B7A-4D0E-4B7E-9C5A-2A7E0C4D9B11}
@@ -35,6 +35,7 @@ Source: "..\dist\app\Mochi.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 
 [Registry]
+Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: string; ValueName: "Mochi"; ValueData: """{app}\Mochi.exe"" --background"; Flags: uninsdeletevalue; Tasks: autostart
 Root: HKCU; Subkey: "Software\Classes\*\shell\Mochi"; ValueType: string; ValueName: ""; ValueData: "Convert with Mochi"; Flags: uninsdeletekey; Tasks: contextmenu
 Root: HKCU; Subkey: "Software\Classes\*\shell\Mochi"; ValueType: string; ValueName: "Icon"; ValueData: "{app}\Mochi.exe"; Tasks: contextmenu
 Root: HKCU; Subkey: "Software\Classes\*\shell\Mochi\command"; ValueType: string; ValueName: ""; ValueData: """{app}\Mochi.exe"" --donut ""%1"""; Tasks: contextmenu
@@ -45,7 +46,6 @@ Root: HKCU; Subkey: "Software\Classes\Directory\shell\Mochi\command"; ValueType:
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\Mochi.exe"
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\Mochi.exe"; Tasks: desktopicon
-Name: "{userstartup}\{#AppName}"; Filename: "{app}\Mochi.exe"; Parameters: "--background"; Tasks: autostart
 
 [Run]
 Filename: "{app}\Mochi.exe"; Parameters: "--background"; Description: "Start Mochi in the background now"; Flags: nowait postinstall skipifsilent

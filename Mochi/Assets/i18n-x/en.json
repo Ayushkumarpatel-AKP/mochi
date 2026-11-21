@@ -29,6 +29,7 @@
  "x.in_donut": "In donut",
  "x.language": "Language",
  "x.keep_tray": "Keep running in the tray when closed",
+ "x.start_login": "Start with Windows, so the donut is always ready",
  "x.built_in": "Built in",
  "x.ready_at": "Ready · {0}",
  "x.not_installed": "Not installed",

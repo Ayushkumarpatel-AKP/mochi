@@ -29,6 +29,7 @@
  "x.in_donut": "在圆环中",
  "x.language": "语言",
  "x.keep_tray": "关闭后继续在托盘运行",
+ "x.start_login": "Start with Windows, so the donut is always ready",
  "x.built_in": "内置",
  "x.ready_at": "就绪 · {0}",
  "x.not_installed": "未安装",
