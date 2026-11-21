@@ -49,7 +49,7 @@ public sealed class DonutProfile
 public sealed class Settings
 {
     public string Mode { get; set; } = "System";      // System | Light | Dark | Auto (dark between AutoDarkFrom and AutoDarkTo)
-    public string ThemePreset { get; set; } = "mochi";   // see ThemeEngine.Themes
+    public string ThemePreset { get; set; } = "sakura";   // see ThemeEngine.Themes
     public bool AccentCycle { get; set; }              // "Living accent": the accent colour drifts slowly through the rainbow
     public double BgTint { get; set; }                 // 0..1, how much of the accent colours the backgrounds
     public bool Oled { get; set; }                     // pure black background in dark looks
@@ -61,7 +61,7 @@ public sealed class Settings
     public string AutoDarkTo { get; set; } = "07:00";
     public bool SoundEffects { get; set; } = true;     // a soft chime when a job is done
     public double SoundVolume { get; set; } = 0.6;
-    public string Accent { get; set; } = "#F0456B";
+    public string Accent { get; set; } = "#FF5C8A";
     public bool CosyApplied { get; set; }                      // the one-time move from the old blue accent to the cosy berry one
     public double Softness { get; set; } = 18;
     public string Language { get; set; } = "en";

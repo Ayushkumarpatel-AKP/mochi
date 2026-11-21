@@ -16,7 +16,8 @@ Newest first. Every release also gets a page in `Mochi/Assets/Guide/whatsnew/<ve
 - Pull request and feature-idea templates, and a guide for adding a feature.
 
 ### Changed
-- A **cosy theme**: strawberry-milk pink in light mode, warm cocoa in dark mode, berry accent, and Fredoka titles.
+- **Sakura is the default theme** for new users (soft cherry-blossom pink with a pink accent). Everyone can still pick any of the 12 looks on the Theme page.
+- A **cosy default look**: strawberry-milk pink in light mode, warm cocoa in dark mode, berry accent, and Fredoka titles.
 - A bigger Mochi logo in the sidebar and a bigger app icon.
 - The donut's labels wrap, shrink and trim so long names stay inside their slice.
 - The Presets live preview has room for the group ring, so it is no longer cut off.

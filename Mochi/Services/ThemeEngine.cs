@@ -41,10 +41,10 @@ public static class ThemeEngine
 
     public static ThemeDef Find(string id) => Themes.FirstOrDefault(t => t.Id == id) ?? Themes[0];
 
-    public static Palette Current { get; private set; } = new(false, Color.Parse("#FFF4F6"), Color.Parse("#E6FFE3EA"), Color.Parse("#FFFDFD"), Color.Parse("#3A1F2B"), Color.Parse("#A5788A"), Color.Parse("#F0456B"));
+    public static Palette Current { get; private set; } = new(false, Color.Parse("#FFF5F7"), Color.Parse("#E6FFE8EE"), Color.Parse("#FFFFFF"), Color.Parse("#3A1F2B"), Color.Parse("#A5788A"), Color.Parse("#FF5C8A"));
 
     /// <summary>The accent in use this instant (it moves while "Living accent" is on).</summary>
-    public static Color CurrentAccent { get; private set; } = Color.Parse("#F0456B");
+    public static Color CurrentAccent { get; private set; } = Color.Parse("#FF5C8A");
 
     private static DispatcherTimer? _cycle, _clock;
     private static double _hue;
@@ -63,7 +63,7 @@ public static class ThemeEngine
         app.RequestedThemeVariant = forced is null ? ThemeVariant.Default : forced.Value ? ThemeVariant.Dark : ThemeVariant.Light;
         var dark = forced ?? app.ActualThemeVariant != ThemeVariant.Light;
 
-        var accent = Color.TryParse(s.Accent, out var a) ? a : Color.Parse("#F0456B");
+        var accent = Color.TryParse(s.Accent, out var a) ? a : Color.Parse("#FF5C8A");
 
         Color bg, side, card, text, sec;
         if (def.Dark is null)
@@ -256,7 +256,7 @@ public static class ThemeEngine
     public static void Reset()
     {
         var s = App.Settings;
-        s.ThemePreset = "mochi"; s.Mode = "System"; s.Accent = "#F0456B"; s.AccentCycle = false; s.BgTint = 0; s.Oled = false; s.Material = "None";
+        s.ThemePreset = "sakura"; s.Mode = "System"; s.Accent = "#FF5C8A"; s.AccentCycle = false; s.BgTint = 0; s.Oled = false; s.Material = "None";
         s.Density = "Comfortable"; s.UiFont = ""; s.TextScale = 1; s.Softness = 18; s.AutoDarkFrom = "19:00"; s.AutoDarkTo = "07:00";
     }
 }
