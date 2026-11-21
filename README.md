@@ -145,6 +145,7 @@ If a free tier runs out, Mochi tries the provider's other models, then your othe
 1. Download **`Mochi-Setup-<version>.exe`** from the [Releases](../../releases) page.
 2. Run it. It installs for you alone, **no administrator prompt**.
 3. Tick *Explorer right-click* if you want **Convert with Mochi** on every file.
+4. The first time Mochi opens, a little Mochi gives you an **on-screen tour**: it lights up the real buttons and tells you what each one does. Open it again any time from **About** > *Take the tour*.
 
 Windows 10 or 11, 64-bit. Self-contained: nothing else to install. Extra engines (FFmpeg, Ghostscript, whisper.cpp and friends) install from the **Engines** page with one click.
 
@@ -222,6 +223,10 @@ The download page is a separate project: React, TypeScript, Vite, Tailwind, Moti
 <img src="docs/screenshots/website-hero.png" alt="mochi.enigmadev.tech" />
 
 <br />
+
+## Contributing
+
+Ideas and fixes are welcome. Adding a feature follows one short recipe, and every release announces itself on screen with pages written as plain JSON: see [docs/ADDING-A-FEATURE.md](docs/ADDING-A-FEATURE.md) and the [changelog](CHANGELOG.md).
 
 ## Thanks
 

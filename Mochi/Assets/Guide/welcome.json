@@ -1,0 +1,129 @@
+{
+  "title": "Welcome to Mochi",
+  // "target" says what Mochi points at on the real screen: dropzone, preset, donutbtn, or nav:<page>
+  // (home, presets, smart, ai, engines, watch, triggers, toolbar, fields, general, theme, about). No target = in the middle.
+  "slides": [
+    {
+      "mascot": "hello",
+      "title": "Hi, I'm Mochi!",
+      "body": "I turn files into other files, and I make it feel easy. Let me show you around: it takes about two minutes.",
+      "bullets": [
+        "Video, pictures, PDF, documents, audio, e-books, fonts and more",
+        "Everything converts on your own PC, nothing is uploaded",
+        "Free and open source"
+      ],
+      "tip": "Use the Left and Right arrow keys, or press Esc to close."
+    },
+    {
+      "mascot": "convert",
+      "title": "Drop your files here",
+      "body": "Home is the quiet way to start.",
+      "bullets": [
+        "Drag files onto this box, or double-click it to choose files",
+        "Your results land next to the originals"
+      ],
+      "target": "dropzone"
+    },
+    {
+      "mascot": "swap",
+      "title": "Pick what to do",
+      "body": "A preset is one ready-made job, like To PNG, To PDF or a video that fits Discord.",
+      "bullets": [
+        "Choose a preset here, then drop your files",
+        "Finished files show under Recent conversions"
+      ],
+      "target": "preset"
+    },
+    {
+      "mascot": "donut",
+      "title": "Or open the donut",
+      "body": "Pick files and a ring of tools opens around them, already filtered to what they can become.",
+      "bullets": [
+        "Press Alt + D anywhere, or hold Shift while you drag files in Explorer",
+        "Click a slice, or drop the files on it"
+      ],
+      "tip": "Tab, Space or the mouse wheel flips the donut over to the tools: annotate, PDF pages, remove background and more.",
+      "target": "donutbtn"
+    },
+    {
+      "mascot": "convert",
+      "title": "Presets",
+      "body": "Decide what is on each donut.",
+      "bullets": [
+        "Each kind of file has its own donut, with up to 8 slices on the front and the back",
+        "Switch a tool on to put it on the donut, and make your own presets"
+      ],
+      "target": "nav:presets"
+    },
+    {
+      "mascot": "search",
+      "title": "Smart files",
+      "body": "Help with the files you already have. All of it runs on your computer.",
+      "bullets": [
+        "Search by meaning: type \"invoice from March\" and find it by what it says",
+        "Tidy a messy folder: Mochi shows a plan first, and you can undo"
+      ],
+      "target": "nav:smart"
+    },
+    {
+      "mascot": "idea",
+      "title": "AI, if you want it",
+      "body": "Connect an AI and Mochi can read a file with you. This part is optional.",
+      "bullets": [
+        "Summarise, ask a file questions, explain a picture, rename smartly",
+        "Your key is kept with Windows DPAPI, and nothing is sent until you run a tool"
+      ],
+      "target": "nav:ai"
+    },
+    {
+      "mascot": "folder",
+      "title": "Watch folders",
+      "body": "Set it up once and forget about it.",
+      "bullets": [
+        "New files in a folder are converted into a 'converted' folder as they arrive"
+      ],
+      "tip": "Mochi can keep running in the tray so Alt + D is always ready.",
+      "target": "nav:watch"
+    },
+    {
+      "mascot": "laptop",
+      "title": "Pick your toolbar",
+      "body": "The donut is one of five ways to pick a tool.",
+      "bullets": [
+        "Donut, Quick Panel, Dock, Command Bar or Tile Pad",
+        "Change the shortcut and how see-through the donut is"
+      ],
+      "target": "nav:toolbar"
+    },
+    {
+      "mascot": "cool",
+      "title": "Make it cosy",
+      "body": "Mochi should feel nice to open.",
+      "bullets": [
+        "12 looks, light, dark or auto by time, accent colours, glass and spacing",
+        "Copy a whole look as one code and paste it on another PC"
+      ],
+      "target": "nav:theme"
+    },
+    {
+      "mascot": "gear",
+      "title": "Engines do the work",
+      "body": "Some conversions need a helper program, like FFmpeg for video or Ghostscript for PDF.",
+      "bullets": [
+        "This page shows what is ready and what is missing",
+        "Install a missing engine with one click"
+      ],
+      "target": "nav:engines"
+    },
+    {
+      "mascot": "rocket",
+      "title": "You're ready!",
+      "body": "Drop a file on Home to begin, or press Alt + D anywhere.",
+      "bullets": [
+        "Open this tour again from the About page",
+        "Mochi is open source: ideas and bug reports are welcome on GitHub"
+      ],
+      "tip": "Click a Mochi sticker and it squishes. They are friendly."
+    }
+  ]
+}

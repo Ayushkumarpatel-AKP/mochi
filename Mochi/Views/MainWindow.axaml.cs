@@ -11,6 +11,51 @@ namespace Mochi.Views;
 public partial class MainWindow : Window
 {
     private LayoutTransformControl? _scaler;
+    private Grid? _guideRoot;
+    private GuideOverlay? _guide;
+
+    /// <summary>Starts the on-screen guide (the welcome tour, or the "What's new" pages) on top of this window.</summary>
+    public void ShowGuide(GuideDeck deck, string doneLabel)
+    {
+        if (_guide is not null || _guideRoot is null) return;
+        if (!IsVisible) Show();
+        if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
+        Activate();
+        _guide = new GuideOverlay(deck, doneLabel, ResolveGuideTarget, PrepareGuideTarget, EndGuide);
+        _guideRoot.Children.Add(_guide);
+        // wait a moment so the window has its final size
+        Avalonia.Threading.DispatcherTimer.RunOnce(() => _guide?.Begin(), TimeSpan.FromMilliseconds(250));
+    }
+
+    private void EndGuide()
+    {
+        if (_guide is not null) _guideRoot?.Children.Remove(_guide);
+        _guide = null;
+        Focus();
+    }
+
+    /// <summary>The page about to be shown points at something on Home: go there first.</summary>
+    private void PrepareGuideTarget(string? key)
+    {
+        if (key is "dropzone" or "preset" or "donutbtn" && DataContext is MainViewModel vm && vm.Nav.FirstOrDefault(n => n.Key == "home") is { } home) vm.Selected = home;
+    }
+
+    /// <summary>"dropzone", "preset", "donutbtn" or "nav:&lt;page&gt;" (home, presets, smart, ai, engines, watch, triggers, toolbar, fields, general, theme, about).</summary>
+    private Control? ResolveGuideTarget(string? key)
+    {
+        if (string.IsNullOrEmpty(key)) return null;
+        if (key == "dropzone") return this.FindControl<Border>("DropZone");
+        if (key == "preset") return this.FindControl<Border>("PresetCard");
+        if (key == "donutbtn") return this.FindControl<Button>("DonutBtn");
+        if (key.StartsWith("nav:") && DataContext is MainViewModel vm && this.FindControl<ListBox>("NavList") is { } list)
+        {
+            var i = vm.Nav.ToList().FindIndex(n => n.Key == key[4..]);
+            if (i < 0) return null;
+            list.ScrollIntoView(i);
+            return list.ContainerFromIndex(i);
+        }
+        return null;
+    }
 
     /// <summary>Which sticker sits next to each page's title.</summary>
     private static readonly Dictionary<string, (string Name, MascotMood Mood)> PageMascots = new()
@@ -53,6 +98,15 @@ public partial class MainWindow : Window
             Content = _scaler;
             ApplyScale();
             App.ScaleChanged += ApplyScale;
+        }
+
+        // a layer above everything for the on-screen guide
+        if (Content is Control body)
+        {
+            Content = null;
+            _guideRoot = new Grid();
+            _guideRoot.Children.Add(body);
+            Content = _guideRoot;
         }
 
         SetupPageMascot();

@@ -19,6 +19,7 @@ public partial class App : Application
     public static bool Quitting { get; private set; }
     private static Window? _mainWin;
     public static Window? MainWindowRef => _mainWin;
+    public static MainWindow? Main => _mainWin as MainWindow;
 
     /// <summary>Brings the main window forward on one of its pages (e.g. "ai").</summary>
     public static void ShowPage(string key)
@@ -109,13 +110,11 @@ public partial class App : Application
             ToolHooks.Organize = async p => await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => OrganizeWindow.RunAsync(p));
             ToolHooks.Ai = async (mode, files) => await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => AiLauncher.RunAsync(mode, files));
             ToolHooks.PdfEdit = async p => await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => PdfEditorWindow.RunAsync(p));
-            Vm.ShowWhatsNew = () => new WhatsNewWindow().Show();
-            if (!Program.Background && Settings.LastSeenVersion != WhatsNewWindow.Version && Program.StartDonut.Count == 0 && Program.StartTool is null && Program.StartAi is null)
-            {
-                Settings.LastSeenVersion = WhatsNewWindow.Version;
-                Settings.Save();
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => Vm.ShowWhatsNew());
-            }
+            Vm.ShowWhatsNew = Guide.ShowWhatsNew;
+            Vm.ShowTour = Guide.ShowTour;
+            // the welcome tour for a new user, then each update's "What's new" pages once
+            if (!Program.Background && Program.StartDonut.Count == 0 && Program.StartTool is null && Program.StartAi is null)
+                Avalonia.Threading.Dispatcher.UIThread.Post(Guide.ShowAtStartup);
 
             if (Program.StartTool is { } st)
                 Avalonia.Threading.Dispatcher.UIThread.Post(async () => { _ = st.Tool switch { "annotate" => await ToolHooks.Annotate!(st.File), "perspective" => await ToolHooks.Perspective!(st.File), "removebg" => await ToolHooks.RemoveBg!(st.File), "erase" => await ToolHooks.Erase!(st.File), "dupes" => await ToolHooks.Dupes!(st.File), "smartsearch" => await ToolHooks.SmartSearch!(st.File), "organize" => await ToolHooks.Organize!(st.File), "sheet" => await ToolHooks.SheetStudio!(st.File), _ => await ToolHooks.PdfEdit!(st.File) }; });

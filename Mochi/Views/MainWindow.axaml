@@ -14,7 +14,7 @@
           <Image Source="avares://Mochi/Assets/Icons/mochi.png" Width="56" Height="56" RenderOptions.BitmapInterpolationMode="HighQuality" />
           <TextBlock Text="Mochi" Classes="headline" VerticalAlignment="Center" />
         </StackPanel>
-        <ListBox Classes="nav" ItemsSource="{Binding Nav}" SelectedItem="{Binding Selected}">
+        <ListBox Name="NavList" Classes="nav" ItemsSource="{Binding Nav}" SelectedItem="{Binding Selected}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:NavItem">
               <Grid>
@@ -56,7 +56,7 @@
               <TextBlock Text="{Binding T[home.drop_select]}" Classes="secondary" HorizontalAlignment="Center" />
             </StackPanel>
           </Border>
-          <Border Classes="card">
+          <Border Name="PresetCard" Classes="card">
             <Grid ColumnDefinitions="*,200,Auto" ColumnSpacing="12">
               <TextBlock Text="{Binding T[x.preset]}" Classes="headline" VerticalAlignment="Center" />
               <ComboBox Grid.Column="1" ItemsSource="{Binding HomePresets}" SelectedItem="{Binding Preset}" HorizontalAlignment="Stretch">
@@ -879,7 +879,10 @@
             <TextBlock Text="{Binding T[about.support_text]}" TextWrapping="Wrap" />
             <TextBlock Text="{Binding T[about.license]}" Classes="secondary" TextWrapping="Wrap" />
             <TextBlock Text="{Binding T[x.about_based]}" Classes="secondary" TextWrapping="Wrap" />
-            <Button Classes="pill" Content="{Binding WhatsNewLabel}" Command="{Binding WhatsNewCommand}" HorizontalAlignment="Left" Margin="0,8,0,0" />
+            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
+              <Button Classes="pill" Content="Take the tour" Command="{Binding TourCommand}" />
+              <Button Classes="pill" Content="{Binding WhatsNewLabel}" Command="{Binding WhatsNewCommand}" />
+            </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
               <Button Classes="plain" Content="{Binding T[x.up.check]}" Command="{Binding CheckForUpdatesCommand}" IsEnabled="{Binding !UpdateBusy}" />
               <Button Classes="pill" Content="{Binding T[x.up.install]}" Command="{Binding InstallUpdateCommand}" IsVisible="{Binding UpdateReady}" IsEnabled="{Binding !UpdateBusy}" />

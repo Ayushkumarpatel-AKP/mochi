@@ -1,0 +1,34 @@
+{
+  "title": "What's new in Mochi 1.1.2",
+  "slides": [
+    {
+      "mascot": "cheer",
+      "title": "Say hello to the Mochi mascots",
+      "body": "Mochi now has a whole family of stickers that pop up where they help.",
+      "bullets": [
+        "A different happy Mochi on every finished job, and a puzzled one when something went wrong",
+        "Each page has its own Mochi next to the title",
+        "Click any sticker and it squishes"
+      ]
+    },
+    {
+      "mascot": "cool",
+      "title": "A cosier look",
+      "body": "The default theme is now warm strawberry-milk pink in light mode and cocoa in dark mode.",
+      "bullets": [
+        "Rounder titles in the Fredoka font",
+        "A bigger Mochi logo in the sidebar and on the app icon",
+        "Boxes and chips that stay readable in every light theme"
+      ]
+    },
+    {
+      "mascot": "hello",
+      "title": "A guide for new users",
+      "body": "The first time Mochi opens it now walks you through everything.",
+      "bullets": [
+        "Open the tour again from the About page",
+        "After each update, pages like this one tell you what changed"
+      ]
+    }
+  ]
+}

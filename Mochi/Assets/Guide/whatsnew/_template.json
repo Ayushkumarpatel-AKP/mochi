@@ -1,0 +1,30 @@
+{
+  // TEMPLATE for the "What's new" pages of a release. Files starting with an underscore are ignored.
+  //
+  // To announce a new feature:
+  //   1. Copy this file to  <version>.json  in this folder, for example  1.2.0.json
+  //      (the name must be the version number from Mochi.csproj, nothing else).
+  //   2. Replace the example page below with one page per feature. One to three pages is plenty.
+  //   3. Bump <Version> in Mochi.csproj and AppVersion in installer/mochi.iss.
+  //   4. Add a line to CHANGELOG.md.
+  // Users who open Mochi after the update see your pages once. Someone who skipped a few versions sees all the pages they missed, oldest first.
+  //
+  // "mascot" is one of the stickers in Assets/Mascot (file name without .png):
+  //   hello, cheer, convert, swap, donut, idea, cool, laptop, search, folder, cloud, gear, translate, rocket, sleep,
+  //   oops (for something that went wrong), doc, sync, pencil, zip, folderspark, done, happy
+  // "title" is the feature in a few words. "body" is one friendly sentence. "bullets" are 1 to 4 short points (optional).
+  // "tip" is one small extra hint (optional). Keep every line short: people read these in seconds.
+  "title": "What's new in Mochi 0.0.0",
+  "slides": [
+    {
+      "mascot": "idea",
+      "title": "The name of the new feature",
+      "body": "One sentence that says what it does for the person using Mochi.",
+      "bullets": [
+        "What you can do now that you could not before",
+        "Where to find it (the page, the donut slice or the shortcut)"
+      ],
+      "tip": "Optional: a shortcut or a trick that makes it nicer."
+    }
+  ]
+}

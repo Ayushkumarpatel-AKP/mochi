@@ -37,7 +37,9 @@ public partial class MainViewModel
 
     // ---------------------------------------------------------------- what's new
     public Action? ShowWhatsNew { get; set; }
+    public Action? ShowTour { get; set; }
     [RelayCommand] private void WhatsNew() => ShowWhatsNew?.Invoke();
+    [RelayCommand] private void Tour() => ShowTour?.Invoke();
 
     // ---------------------------------------------------------------- your own presets
     public ObservableCollection<CustomPreset> CustomRows { get; } = new(App.Settings.CustomPresets);

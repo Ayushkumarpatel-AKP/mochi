@@ -79,6 +79,7 @@ public sealed class Settings
     public List<DonutProfile> Profiles { get; set; } = new();
     public string OllamaModel { get; set; } = "llama3.2";
     public string LastSeenVersion { get; set; } = "";
+    public bool GuideSeen { get; set; }                         // the welcome tour has been shown once
     public bool ProfilesSeeded { get; set; }
     public int ProfilesVersion { get; set; }
     public List<string> DonutBackIds { get; set; } = new() { "turn-90", "flip-h", "width-1080", "under-200", "strip", "watermark", "pdf-protect", "long-img" };

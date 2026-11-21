@@ -314,7 +314,7 @@ public partial class MainViewModel : ObservableObject
         set { App.Settings.TriggerModifier = Modifiers[Math.Max(0, value)]; App.Settings.Save(); OnPropertyChanged(nameof(TriggerHint)); }
     }
     public string TriggerHint => Loc.T("x.trigger_hint", App.Settings.TriggerModifier);
-    public string WhatsNewLabel => Loc.T("whats_new.about_link", "2.3.0");
+    public string WhatsNewLabel => "What's new in Mochi " + Guide.AppVersion;
     public double DonutOpacity { get => App.Settings.DonutOpacity; set { App.Settings.DonutOpacity = value; App.Settings.Save(); } }
 
     public void SetInDonut(string id, bool on)
