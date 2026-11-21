@@ -1,0 +1,16 @@
+{
+  "title": "What's new in Mochi 1.1.3",
+  "slides": [
+    {
+      "mascot": "donut",
+      "title": "Your donut, your choice",
+      "body": "When you open the donut with a file, your own slices now come first, and Mochi's suggestions only fill the empty spots.",
+      "bullets": [
+        "The tools you picked in Settings always show up when they fit the file",
+        "Anything that does not fit the front moves to the back of the donut",
+        "A donut you made for a kind of file still wins"
+      ],
+      "tip": "Click the middle of the donut to flip it and see the back."
+    }
+  ]
+}

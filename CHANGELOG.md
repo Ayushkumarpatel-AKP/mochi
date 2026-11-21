@@ -7,6 +7,11 @@ Newest first. Every release also gets a page in `Mochi/Assets/Guide/whatsnew/<ve
 
 <!-- New things go here while you work, then move under a version heading when you release. -->
 
+## 1.1.3
+
+### Fixed
+- **The donut ignored your own slices when you opened it with a file.** It showed only Mochi's suggestions for that kind of file. Now the slices you chose come first (when they fit the file), Mochi's suggestions fill the empty spots, and whatever does not fit the front goes to the back face. A donut you made for a kind of file still wins.
+
 ## 1.1.2
 
 ### Added

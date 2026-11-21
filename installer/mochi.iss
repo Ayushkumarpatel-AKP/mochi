@@ -1,6 +1,6 @@
 ; Mochi setup. Build with:  installer\build.ps1
 #define AppName "Mochi"
-#define AppVersion "1.1.2"
+#define AppVersion "1.1.3"
 
 [Setup]
 AppId={{6F1C2B7A-4D0E-4B7E-9C5A-2A7E0C4D9B11}
