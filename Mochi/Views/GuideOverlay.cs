@@ -26,7 +26,7 @@ public sealed class GuideOverlay : Grid
 
     private readonly Avalonia.Controls.Shapes.Path _scrim = new() { Fill = new SolidColorBrush(Color.FromArgb(150, 12, 6, 10)) };
     private readonly Border _ring = new() { BorderThickness = new Thickness(3), CornerRadius = new CornerRadius(16), IsHitTestVisible = false, Opacity = 0 };
-    private readonly Canvas _layer = new() { IsHitTestVisible = false };
+    private readonly Canvas _layer = new();   // hit-testable: its children (the card and its buttons) must be clickable; empty canvas areas are not hit
     private readonly Border _card = new() { CornerRadius = new CornerRadius(22), Padding = new Thickness(18, 16, 18, 14), Width = CardW, BorderThickness = new Thickness(1), IsHitTestVisible = true };
     private readonly MascotView _mascot = new() { Width = 96, Height = 88, VerticalAlignment = VerticalAlignment.Top };
     private readonly TextBlock _title = new() { FontSize = 20, FontWeight = FontWeight.SemiBold, TextWrapping = TextWrapping.Wrap, Classes = { "headline" } };
