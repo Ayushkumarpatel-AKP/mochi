@@ -52,10 +52,26 @@ public sealed class DonutWindow : Window
     private static (List<SliceItem> Front, List<SliceItem> Back) Faces(IReadOnlyList<string> files)
     {
         var prof = MainViewModel.ProfileFor(files);
-        var f = prof is not null ? Build(prof.PresetIds, files) : new();
-        if (f.Count == 0) f = Converter.Suggest(files).Select(p => new SliceItem(p.DisplayName, p, null)).ToList();
+        // What the user chose comes first (their own profile for this kind of file, then their donut), and Mochi's suggestions
+        // only fill the slots left over. Whatever does not fit on the front goes to the back, so nothing the user chose is lost.
+        var own = prof is { Builtin: false };
+        var chosenF = Build(App.Settings.DonutIds, files);
+        var chosenB = Build(App.Settings.DonutBackIds, files);
+        var profF = prof is not null ? Build(prof.PresetIds, files) : new();
+        var profB = prof is { BackPresetIds.Count: > 0 } ? Build(prof.BackPresetIds, files) : new();
+        var smart = profF.Count > 0 ? profF : Converter.Suggest(files).Select(p => new SliceItem(p.DisplayName, p, null)).ToList();
+        var f = new List<SliceItem>(); var b = new List<SliceItem>();
+        void Put(List<SliceItem> to, IEnumerable<SliceItem> from)
+        {
+            foreach (var s in from)
+                if (to.Count < 8 && !f.Any(x => x.Label == s.Label) && !b.Any(x => x.Label == s.Label)) to.Add(s);
+        }
+        var frontOrder = own ? new[] { profF, chosenF, smart } : new[] { chosenF, smart };
+        foreach (var src in frontOrder) Put(f, src);
+        var backOrder = own ? new[] { profB, chosenB } : new[] { chosenB, profB };
+        foreach (var src in backOrder) Put(b, src);
+        foreach (var src in frontOrder) Put(b, src);   // chosen tools that did not fit the front keep a place on the back
         // the AI slice goes with every kind of file (it shows only the AI tools that fit them)
-        var b = Build(prof is { BackPresetIds.Count: > 0 } ? prof.BackPresetIds : App.Settings.DonutBackIds, files);
         if (Ai.IsConfigured && !f.Any(x => x.IsGroup && x.Label == "✦ AI") && !b.Any(x => x.IsGroup && x.Label == "✦ AI") && Build(new[] { "g:ai" }, files) is { Count: > 0 } ai)
         {
             // a full face gives its last slice to the AI slice (that tool moves to the back face if there is room); nothing is saved
