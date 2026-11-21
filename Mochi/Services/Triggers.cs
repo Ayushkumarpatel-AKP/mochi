@@ -57,10 +57,10 @@ public sealed class Triggers
         {
             Toolbar.Show(_vm, null, combo);
             // a drag out of Explorer: what is selected there is what is being dragged, so the donut can suggest the right tools already
-            if (!combo && _fromExplorer && s.ToolbarStyle == "donut")
+            if (!combo && _fromExplorer)
                 Dispatcher.UIThread.Post(() =>   // Explorer's selection is read through COM, which wants this (STA) thread
                 {
-                    if (Native.ExplorerSelection() is { Count: > 0 } files) DonutWindow.Current?.Suggest(files);
+                    if (Native.ExplorerSelection() is { Count: > 0 } files) { if (s.ToolbarStyle == "donut") DonutWindow.Current?.Suggest(files); else Views.ToolbarBase.Current?.Suggest(files); }
                 }, DispatcherPriority.Background);
         }
     }

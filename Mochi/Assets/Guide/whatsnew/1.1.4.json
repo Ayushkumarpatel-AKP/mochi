@@ -1,0 +1,25 @@
+{
+  "title": "What's new in Mochi 1.1.4",
+  "slides": [
+    {
+      "mascot": "swap",
+      "title": "Drag and drop that just works",
+      "body": "The panel, dock, command bar and tiles now take dropped files smoothly, without jumping around.",
+      "bullets": [
+        "A tool lights up when you drag over it",
+        "Drop files anywhere on the bar, then search for the tool you want",
+        "Right-click a tool, or tap the star, to pin it to the front"
+      ],
+      "tip": "Hold Alt and drag a file out of Explorer to open your favourite style."
+    },
+    {
+      "mascot": "done",
+      "title": "A finish you can use",
+      "body": "When a job is done you now see how much smaller it got, with buttons to open the result or find it in its folder.",
+      "bullets": [
+        "For example: 2.4 MB to 186 KB, 92% smaller",
+        "A full disk is explained in plain words"
+      ]
+    }
+  ]
+}

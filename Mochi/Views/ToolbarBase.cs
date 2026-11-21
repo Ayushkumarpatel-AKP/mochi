@@ -87,6 +87,8 @@ public static class Toolbar
             // files that live only in OneDrive (or another cloud folder) are downloaded when read: that can take a while, so say so
             var online = ok.Count(f => { try { return (File.GetAttributes(f) & (FileAttributes)0x00400000) != 0 || (File.GetAttributes(f) & FileAttributes.Offline) != 0; } catch { return false; } });
             if (online > 0) DropLog.Write($"{online} file(s) are online-only (cloud placeholders)");
+            long inBytes = 0;
+            foreach (var f in ok) { try { if (File.Exists(f)) inBytes += new FileInfo(f).Length; } catch { /* a size is only for the toast */ } }
             BusyToast.Begin(p, ok.Count, online > 0);
             try { await vm.ConvertAsync(ok, p); }
             finally { BusyToast.End(); }
@@ -94,7 +96,7 @@ public static class Toolbar
             var done = vm.Recent.TakeWhile(r => !ReferenceEquals(r, before)).Take(n).ToList();   // a tool closed without saving adds nothing
             DropLog.Write($"{p.Name}: finished, {done.Count(d => !d.Failed)} ok, {done.Count(d => d.Failed)} failed");
             var note = skipped == 0 ? null : string.Format(Loc.TryGet("x.skipped") ?? "{0} file(s) skipped: {1} can't convert them.", skipped, p.DisplayName);
-            if (done.Count > 0) Dispatcher.UIThread.Post(() => ToastWindow.Notify(done, note));
+            if (done.Count > 0) Dispatcher.UIThread.Post(() => ToastWindow.Notify(done, note, inBytes));
         }
         catch (Exception ex)
         {
@@ -137,7 +139,7 @@ public abstract class ToolbarBase : Window
     public bool Persistent => Activated;
 
     protected readonly MainViewModel Vm;
-    protected readonly bool Activated;
+    protected bool Activated { get; private set; }
     protected readonly Pal P = Pal.Now();
     protected readonly List<Tool> All;
     protected readonly TextBlock Headline = new() { FontWeight = FontWeight.SemiBold, FontSize = 14, TextTrimming = TextTrimming.CharacterEllipsis };
@@ -146,7 +148,7 @@ public abstract class ToolbarBase : Window
     protected readonly DispatcherTimer Watcher = new() { Interval = TimeSpan.FromMilliseconds(100) };
     protected bool Picking;
     private DateTime _lastActive = DateTime.UtcNow;
-    private readonly IReadOnlyList<string> _files;
+    private IReadOnlyList<string> _files;
     private IReadOnlyList<string> _dragFiles = Array.Empty<string>();
     private string _dragKey = "";
 
@@ -176,7 +178,25 @@ public abstract class ToolbarBase : Window
 
         DragDrop.SetAllowDrop(this, true);
         AddHandler(DragDrop.DragOverEvent, (_, e) => { FilterFor(e); e.DragEffects = DragDropEffects.Copy; });
-        AddHandler(DragDrop.DragLeaveEvent, (_, _) => { if (_dragKey.Length > 0) { _dragKey = ""; _dragFiles = Array.Empty<string>(); RefreshHeader(); Refresh(); } });
+        // DragLeave also bubbles up from every tool the pointer slides off; only a pointer that really left the window resets things,
+        // otherwise the tools would be rebuilt under the pointer at each boundary and the drop could land on a vanished button
+        AddHandler(DragDrop.DragLeaveEvent, (_, _) => { if (_dragKey.Length > 0 && !CursorInside()) { _dragKey = ""; _dragFiles = Array.Empty<string>(); RefreshHeader(); Refresh(); } });
+        // a drop anywhere that is not a tool: the files are taken, and the tools that fit them are shown, ready to search and pick
+        AddHandler(DragDrop.DropEvent, (_, e) =>
+        {
+            if (e.Handled) return;
+            e.Handled = true;
+            var dropped = e.Data.GetFiles()?.Select(f => f.TryGetLocalPath()).OfType<string>().ToList();
+            if (dropped is not { Count: > 0 })
+            {
+                var kinds = string.Join(", ", e.Data.GetDataFormats());
+                DropLog.Write("drop on the toolbar carried no files; formats: " + kinds);
+                ToastWindow.Notify(new[] { new RecentItem(L("x.no_files_title", "Nothing to convert"), "", string.Format(L("x.no_files", "That drag did not carry files Mochi can read (it carried: {0}). Save the file to a folder first, then drag it from there."), kinds), true, Array.Empty<string>()) });
+                return;
+            }
+            DropLog.Write($"dropped {DropLog.Short(dropped)} on the toolbar: choosing a tool next");
+            Dispatcher.UIThread.Post(() => Adopt(dropped), DispatcherPriority.Background);
+        });
         PointerMoved += (_, _) => _lastActive = DateTime.UtcNow;
         KeyDown += (_, e) => { if (e.Key == Key.Escape) Close(); };
         Deactivated += (_, _) =>
@@ -292,6 +312,32 @@ public abstract class ToolbarBase : Window
             .Take(n).ToList();
     }
 
+    /// <summary>Shows what fits these files before the pointer has even reached the toolbar (the trigger knows what Explorer has selected).</summary>
+    public void Suggest(IReadOnlyList<string> files)
+    {
+        if (_files.Count > 0 || files.Count == 0) return;
+        var key = string.Join('|', files);
+        if (key == _dragKey) return;
+        _dragKey = key; _dragFiles = files;
+        RefreshHeader(); Refresh();
+    }
+
+    /// <summary>Files dropped on the toolbar itself: they become its files, it keeps the focus, and the search box is ready.</summary>
+    private void Adopt(IReadOnlyList<string> files)
+    {
+        _files = files; _dragFiles = Array.Empty<string>(); _dragKey = "";
+        _awaitDrag = null; Activated = true;
+        if (TryGetPlatformHandle()?.Handle is { } h) Native.ForceForeground(h);
+        Activate();
+        RefreshHeader(); Refresh(); OnActivated();
+    }
+
+    private bool CursorInside()
+    {
+        var c = Native.Cursor(); var k = RenderScaling;
+        return c.X >= Position.X && c.Y >= Position.Y && c.X <= Position.X + (int)(Bounds.Width * k) && c.Y <= Position.Y + (int)(Bounds.Height * k);
+    }
+
     private void FilterFor(DragEventArgs e)
     {
         if (_files.Count > 0) return;
@@ -321,7 +367,7 @@ public abstract class ToolbarBase : Window
         if (f.Count == 0)
         {
             Headline.Text = L("x.qp.nofiles", "No files yet");
-            Sub.Text = L("x.qp.nofiles_hint", "Drop files on a tool, or click a tool to choose files. Tip: select files in Explorer, then press the shortcut.");
+            Sub.Text = L("x.qp.nofiles_hint", "Drop files anywhere here, or on a tool. Or click a tool to choose files.");
             Thumbs.Children.Add(Tile("＋", "#8E8E93", "#5C5C60", 46));
             return;
         }
@@ -365,14 +411,47 @@ public abstract class ToolbarBase : Window
 
     // ---------------------------------------------------------------- clicking and dropping
 
+    /// <summary>The star that pins a tool to the front of every toolbar, so a tool found by searching can be kept.</summary>
+    protected Button PinStar(Tool t)
+    {
+        var pinned = Toolbar.Pins().Contains(t.Preset.Id);
+        var star = new Button { Classes = { "plain" }, Content = pinned ? "★" : "☆", FontSize = 15, Padding = new Thickness(8, 2), Foreground = new SolidColorBrush(Color.Parse(pinned ? "#FFB800" : "#8E8E93")) };
+        ToolTip.SetTip(star, pinned ? L("x.qp.unpin", "Unpin") : L("x.qp.pin", "Pin to the top"));
+        star.Click += (_, e) =>
+        {
+            var pins = Toolbar.Pins();
+            if (!pins.Remove(t.Preset.Id)) pins.Add(t.Preset.Id);
+            App.Settings.Save(); Refresh(); e.Handled = true;
+        };
+        return star;
+    }
+
     /// <summary>A click runs the tool (or asks for files first); a drop of files runs it on those files.</summary>
     protected void Wire(Button b, Tool t)
     {
         b.Click += async (_, _) => await ClickedAsync(t);
         DragDrop.SetAllowDrop(b, true);
+        var rest = b.Background; var restBorder = b.BorderBrush; var restThick = b.BorderThickness;
+        void Hot(bool on)
+        {
+            b.Background = on ? new SolidColorBrush(P.Accent, 0.28) : rest;
+            b.BorderBrush = on ? new SolidColorBrush(P.Accent) : restBorder;
+            b.BorderThickness = on ? new Thickness(2) : restThick;
+        }
+        b.AddHandler(DragDrop.DragEnterEvent, (_, _) => Hot(true));
+        b.AddHandler(DragDrop.DragLeaveEvent, (_, _) => Hot(false));
         b.AddHandler(DragDrop.DragOverEvent, (_, e) => e.DragEffects = DragDropEffects.Copy);
+        // right-click a tool to pin it to (or unpin it from) the front of the toolbar
+        var pinned = Toolbar.Pins().Contains(t.Preset.Id);
+        var pin = new MenuItem { Header = pinned ? L("x.qp.unpin", "Unpin") : L("x.qp.pin", "Pin to the top") };
+        pin.Click += (_, _) => { var pins = Toolbar.Pins(); if (!pins.Remove(t.Preset.Id)) pins.Add(t.Preset.Id); App.Settings.Save(); Refresh(); };
+        var menu = new ContextMenu { Items = { pin } };
+        menu.Opening += (_, _) => Picking = true;
+        menu.Closed += (_, _) => Picking = false;
+        b.ContextMenu = menu;
         b.AddHandler(DragDrop.DropEvent, (_, e) =>
         {
+            Hot(false);
             var files = e.Data.GetFiles()?.Select(f => f.TryGetLocalPath()).OfType<string>().ToList();
             if (files is not { Count: > 0 })
             {

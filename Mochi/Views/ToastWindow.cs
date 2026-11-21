@@ -17,7 +17,7 @@ public sealed class ToastWindow : Window
 {
     private static ToastWindow? _current;
 
-    public static void Notify(IReadOnlyList<RecentItem> items, string? note = null)
+    public static void Notify(IReadOnlyList<RecentItem> items, string? note = null, long inBytes = 0)
     {
         var failed = items.Where(i => i.Failed).ToList();
         var bad = failed.Count > 0;
@@ -25,9 +25,35 @@ public sealed class ToastWindow : Window
         var title = bad ? Loc.TryGet("x.toast.failed") ?? "Couldn't convert" : Loc.TryGet("x.toast.done") ?? "Done";
         var name = first.Name + (!bad && items.Count > 1 ? $"  +{items.Count - 1}" : "");
         _current?.Close();
-        _current = new ToastWindow(title, name, bad ? first.Detail : "", note, bad, first.Failed || first.Path.Length == 0 ? null : first.Path);
+        // what the user cares about: how much smaller it got, and what to do next; a full disk says so plainly
+        var detail = bad ? first.Detail : "";
+        string? gain = null;
+        if (bad && detail.Contains("not enough space", StringComparison.OrdinalIgnoreCase))
+        {
+            title = Loc.TryGet("x.toast.disk_full") ?? "Your disk is full";
+            detail = Loc.TryGet("x.toast.disk_full_hint") ?? "Free up some space on that drive, then try again.";
+        }
+        else if (!bad) gain = Gain(items, inBytes);
+        _current = new ToastWindow(title, name, detail, note, bad, first.Failed || first.Path.Length == 0 ? null : first.Path, !bad ? first.Detail : null, gain);
         _current.Show();
         if (bad) Sounds.Fail(); else Sounds.Done();
+    }
+
+    private static string Size(long b) => b >= 1L << 30 ? $"{b / (double)(1L << 30):0.#} GB" : b >= 1L << 20 ? $"{b / (double)(1L << 20):0.#} MB" : b >= 1L << 10 ? $"{b / 1024.0:0} KB" : $"{b} B";
+
+    /// <summary>"2.4 MB → 186 KB, 92% smaller" when the result is smaller; just the new size otherwise.</summary>
+    private static string? Gain(IReadOnlyList<RecentItem> items, long inBytes)
+    {
+        try
+        {
+            long outBytes = 0;
+            foreach (var o in items.SelectMany(i => i.Outputs)) if (File.Exists(o)) outBytes += new FileInfo(o).Length;
+            if (outBytes <= 0) return null;
+            if (inBytes > outBytes && items.Count == 1 && items[0].Outputs.Count == 1)
+                return $"{Size(inBytes)} → {Size(outBytes)}  ·  {(int)Math.Round(100.0 * (inBytes - outBytes) / inBytes)}% smaller";
+            return Size(outBytes);
+        }
+        catch { return null; }
     }
 
     private static readonly string[] Happy = { "done", "cheer", "rocket", "happy", "convert", "cool", "hello" };
@@ -38,7 +64,7 @@ public sealed class ToastWindow : Window
         _lastHappy = i; return Happy[i];
     }
 
-    private ToastWindow(string title, string name, string detail, string? note, bool failed, string? path)
+    private ToastWindow(string title, string name, string detail, string? note, bool failed, string? path, string? tool = null, string? gain = null)
     {
         const double W = 392;
         var p = Pal.Now();
@@ -51,21 +77,33 @@ public sealed class ToastWindow : Window
         WindowStartupLocation = WindowStartupLocation.Manual;
 
         // Mochi says how it went: a different happy sticker each time, or a puzzled one
-        Control badge = new MascotView(failed ? "oops" : HappyPick(), 48, MascotMood.Hop) { VerticalAlignment = VerticalAlignment.Center, Width = 56, Margin = new Thickness(0, 6, 0, 0) };
+        Control badge = new MascotView(failed ? "oops" : HappyPick(), 48, MascotMood.Still) { VerticalAlignment = VerticalAlignment.Center, Width = 56, Margin = new Thickness(0, 6, 0, 0) };
 
         var text = new StackPanel { Spacing = 2, VerticalAlignment = VerticalAlignment.Center };
         text.Children.Add(new TextBlock { Text = title, FontSize = 14, FontWeight = FontWeight.SemiBold, Foreground = p.TextBrush });
         text.Children.Add(new TextBlock { Text = name, FontSize = 12.5, Foreground = new SolidColorBrush(p.Text, 0.85), TextTrimming = TextTrimming.CharacterEllipsis, MaxLines = 1 });
+        if (tool is { Length: > 0 }) text.Children.Add(new TextBlock { Text = tool, FontSize = 11.5, Foreground = p.SubBrush, MaxLines = 1, TextTrimming = TextTrimming.CharacterEllipsis });
+        if (gain is { Length: > 0 }) text.Children.Add(new TextBlock { Text = gain, FontSize = 13, FontWeight = FontWeight.SemiBold, Foreground = new SolidColorBrush(accent), Margin = new Thickness(0, 3, 0, 0) });
         if (detail.Length > 0) text.Children.Add(new TextBlock { Text = detail, FontSize = 12, Foreground = p.SubBrush, TextWrapping = TextWrapping.Wrap, MaxLines = 3, TextTrimming = TextTrimming.CharacterEllipsis, Margin = new Thickness(0, 2, 0, 0) });
         if (note is { Length: > 0 }) text.Children.Add(new TextBlock { Text = note, FontSize = 11.5, Foreground = new SolidColorBrush(Color.Parse("#FFB020")), TextWrapping = TextWrapping.Wrap, MaxLines = 2, Margin = new Thickness(0, 3, 0, 0) });
 
         var row = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto"), ColumnSpacing = 12 };
         row.Children.Add(badge);
         Grid.SetColumn(text, 1); row.Children.Add(text);
-        if (path is not null)
+        if (path is not null && !failed)
         {
-            var open = new TextBlock { Text = Loc.TryGet("x.toast.show") ?? "Show", FontSize = 11.5, FontWeight = FontWeight.SemiBold, Foreground = new SolidColorBrush(ThemeEngine.CurrentAccent), VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 2, 0, 0) };
-            Grid.SetColumn(open, 2); row.Children.Add(open);
+            // the two things people do next: look at the result, or find it in its folder
+            Button Pill(string label, bool primary, Action run)
+            {
+                var b = new Button { Content = label, FontSize = 11.5, FontWeight = FontWeight.SemiBold, Padding = new Thickness(11, 3), CornerRadius = new CornerRadius(10), Margin = new Thickness(0, 8, 6, 0),
+                    Background = primary ? new SolidColorBrush(ThemeEngine.CurrentAccent) : p.Chip(), Foreground = primary ? Brushes.White : p.TextBrush };
+                b.Click += (_, e) => { run(); e.Handled = true; Close(); };
+                return b;
+            }
+            var actions = new StackPanel { Orientation = Orientation.Horizontal };
+            actions.Children.Add(Pill(Loc.TryGet("x.toast.open") ?? "Open", true, () => { try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(path) { UseShellExecute = true }); } catch { } }));
+            actions.Children.Add(Pill(Loc.TryGet("x.toast.show") ?? "Show in folder", false, () => System.Diagnostics.Process.Start("explorer.exe", Directory.Exists(path) ? $"\"{path}\"" : $"/select,\"{path}\"")));
+            text.Children.Add(actions);
         }
 
         Content = new Border
@@ -102,7 +140,7 @@ public sealed class ToastWindow : Window
             Close();
         };
 
-        var left = failed ? 8.0 : 4.5;
+        var left = failed ? 9.0 : 8.0;
         var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         timer.Tick += (_, _) => { if (hover) return; left -= 0.1; if (left <= 0) { timer.Stop(); Close(); } };
         timer.Start();

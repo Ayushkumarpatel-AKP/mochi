@@ -7,6 +7,16 @@ Newest first. Every release also gets a page in `Mochi/Assets/Guide/whatsnew/<ve
 
 <!-- New things go here while you work, then move under a version heading when you release. -->
 
+## 1.1.4
+
+### Fixed
+- **Drag and drop in the panel, dock, command bar and tiles.** The bar no longer rebuilds under the pointer while you drag across it, tools are filtered for your files before the pointer arrives, the tool under the pointer lights up, and a drop anywhere on the bar keeps the files so you can search for the tool.
+- A drag that carries no files now says so, instead of doing nothing.
+
+### Added
+- **Pin from anywhere.** Right-click a tool in any style, or tap the star in the command bar, to pin it to the front.
+- **A more useful "Done" card.** It shows how much smaller the result is (for example 2.4 MB to 186 KB, 92% smaller) with Open and Show in folder buttons, and the bouncing Mochi is calm. A full disk is explained in plain words.
+
 ## 1.1.3
 
 ### Fixed

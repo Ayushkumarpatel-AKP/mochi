@@ -119,7 +119,7 @@ public sealed class CommandBarWindow : ToolbarBase
     protected override void Refresh()
     {
         var q = (_search.Text ?? "").Trim();
-        Headline.Text = Files.Count == 0 ? L("x.cb.nofiles", "No files yet: pick a tool to choose files, or drop files on one.") : (Files.Count == 1 ? Path.GetFileName(Files[0].TrimEnd('\\', '/')) : string.Format(L("x.qp.n_files", "{0} files"), Files.Count)) + "  ·  " + (q.Length == 0 ? L("x.qp.suggested", "Suggested for these files") : L("x.cb.results", "Results"));
+        Headline.Text = Files.Count == 0 ? L("x.cb.nofiles", "No files yet: drop files here, or pick a tool to choose files.") : (Files.Count == 1 ? Path.GetFileName(Files[0].TrimEnd('\\', '/')) : string.Format(L("x.qp.n_files", "{0} files"), Files.Count)) + "  ·  " + (q.Length == 0 ? L("x.qp.suggested", "Suggested for these files") : L("x.cb.results", "Results"));
         Sub.Text = "";
         _list.Children.Clear();
         var hits = Current_Hits();
@@ -127,12 +127,13 @@ public sealed class CommandBarWindow : ToolbarBase
         for (var i = 0; i < hits.Count; i++)
         {
             var t = hits[i];
-            var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto"), ColumnSpacing = 12 };
+            var grid = new Grid { ColumnDefinitions = new ColumnDefinitions("Auto,*,Auto,Auto"), ColumnSpacing = 12 };
             grid.Children.Add(Icon(t, 36));
             var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Children = { new TextBlock { Text = t.Name, FontSize = 14, FontWeight = FontWeight.SemiBold }, new TextBlock { Text = t.Detail, FontSize = 11, Opacity = 0.55 } } };
             Grid.SetColumn(text, 1); grid.Children.Add(text);
             var hint = new TextBlock { Text = i == _pick ? "↵" : "", FontSize = 16, Opacity = 0.6, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
             Grid.SetColumn(hint, 2); grid.Children.Add(hint);
+            var star = PinStar(t); Grid.SetColumn(star, 3); grid.Children.Add(star);
             var row = new Button { Content = grid, HorizontalAlignment = HorizontalAlignment.Stretch, HorizontalContentAlignment = HorizontalAlignment.Stretch, Padding = new Thickness(10, 6), CornerRadius = new CornerRadius(14), Background = i == _pick ? P.Chip(0.1) : Brushes.Transparent };
             Wire(row, t);
             _list.Children.Add(row);
