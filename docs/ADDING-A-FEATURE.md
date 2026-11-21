@@ -36,6 +36,7 @@ A new feature that adds a **page or a button** should also get a line in the fir
 2. Add the changes to `CHANGELOG.md`, newest on top.
 3. Update `README.md` if the feature is big enough to be listed there, and add a screenshot to `docs/screenshots` if it is something people should *see*.
 4. Run `installer/build.ps1`, install the result, and try the feature and the What's new pages on a clean profile. Delete `%APPDATA%\Mochi\settings.json` (or set `GuideSeen` to `false`) to see the first-run tour again.
-5. Publish a GitHub release with `Mochi-Setup-<version>.exe` and the same notes as the changelog.
+5. Publish a GitHub release (tag `v<version>`) with the same notes as the changelog and **two copies** of the installer: `Mochi-Setup-<version>.exe` and `Mochi-Setup.exe`. The website's Download button links to the fixed name, so it always gets the newest one.
+6. Bump `VERSION` in the website's `src/lib/config.ts` (the `mochi-website` repo) so the page shows the new number.
 
 The pull request template has the same list as checkboxes.
