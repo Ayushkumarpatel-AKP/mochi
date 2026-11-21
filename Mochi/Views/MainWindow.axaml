@@ -1,0 +1,893 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Mochi.ViewModels"
+        xmlns:svc="using:Mochi.Services"
+        xmlns:v="using:Mochi.Views"
+        x:Class="Mochi.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="Mochi" Width="1040" Height="700" MinWidth="760" MinHeight="520"
+        Icon="avares://Mochi/Assets/Icons/mochi.ico">
+  <Grid ColumnDefinitions="250,*">
+    <Border Classes="sidebar" Padding="20,24">
+      <DockPanel>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="12" Margin="6,0,0,24">
+          <Image Source="avares://Mochi/Assets/Icons/mochi.png" Width="56" Height="56" RenderOptions.BitmapInterpolationMode="HighQuality" />
+          <TextBlock Text="Mochi" Classes="headline" VerticalAlignment="Center" />
+        </StackPanel>
+        <ListBox Classes="nav" ItemsSource="{Binding Nav}" SelectedItem="{Binding Selected}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:NavItem">
+              <Grid>
+                <Border IsVisible="{Binding DividerBefore}" Height="1" Margin="0,-25,0,0" VerticalAlignment="Top"
+                        Background="{DynamicResource IosSeparatorBrush}" />
+                <StackPanel Orientation="Horizontal" Spacing="16">
+                  <Path Classes="navicon" Data="{Binding Icon}" Width="20" Height="20" Stretch="Uniform"
+                        StrokeThickness="1.6" StrokeLineCap="Round" StrokeJoin="Round"
+                        Stroke="{Binding $parent[ListBoxItem].Foreground}" VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Label}" VerticalAlignment="Center" />
+                </StackPanel>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+          <ListBox.Styles>
+            <Style Selector="ListBoxItem" x:DataType="vm:NavItem">
+              <Setter Property="Margin" Value="{Binding Gap}" />
+            </Style>
+          </ListBox.Styles>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <ScrollViewer Grid.Column="1">
+      <StackPanel Margin="40,32,40,40" Spacing="20" MaxWidth="940" HorizontalAlignment="Stretch">
+        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,4">
+          <TextBlock Classes="title" Text="{Binding PageTitle}" VerticalAlignment="Center" />
+          <!-- the page's Mochi: set from MainWindow.axaml.cs when the page changes -->
+          <v:MascotView Name="PageMascot" Grid.Column="1" Height="60" Margin="0,-6,8,-2" ToolTip.Tip="Mochi" />
+        </Grid>
+
+        <!-- Home -->
+        <StackPanel Spacing="16" IsVisible="{Binding IsHome}">
+          <Border Name="DropZone" Classes="card" Height="180" DragDrop.AllowDrop="True"
+                  BorderBrush="{DynamicResource IosAccentBrush}" BorderThickness="2" Cursor="Hand">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="6">
+              <TextBlock Text="⤓" FontSize="40" HorizontalAlignment="Center" Foreground="{DynamicResource IosAccentBrush}" />
+              <TextBlock Text="{Binding T[home.drop_title]}" Classes="headline" HorizontalAlignment="Center" />
+              <TextBlock Text="{Binding T[home.drop_select]}" Classes="secondary" HorizontalAlignment="Center" />
+            </StackPanel>
+          </Border>
+          <Border Classes="card">
+            <Grid ColumnDefinitions="*,200,Auto" ColumnSpacing="12">
+              <TextBlock Text="{Binding T[x.preset]}" Classes="headline" VerticalAlignment="Center" />
+              <ComboBox Grid.Column="1" ItemsSource="{Binding HomePresets}" SelectedItem="{Binding Preset}" HorizontalAlignment="Stretch">
+                <ComboBox.ItemTemplate><DataTemplate x:DataType="svc:Preset"><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
+              </ComboBox>
+              <Button Grid.Column="2" Name="DonutBtn" Classes="pill" Content="{Binding T[x.pick_donut]}" />
+            </Grid>
+          </Border>
+          <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+            <ProgressBar IsIndeterminate="True" Width="80" IsVisible="{Binding Busy}" />
+            <TextBlock Text="{Binding Status}" Classes="secondary" VerticalAlignment="Center" />
+          </StackPanel>
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="{Binding T[home.recent]}" Classes="headline" />
+            <Button Grid.Column="1" Classes="plain" Content="{Binding T[home.clear_history]}" Command="{Binding ClearHistoryCommand}" />
+          </Grid>
+          <StackPanel IsVisible="{Binding !Recent.Count}" HorizontalAlignment="Center" Spacing="6" Margin="0,8">
+            <v:MascotView Mascot="sleep" Mood="Float" Height="80" />
+            <TextBlock Text="{Binding T[home.recent_empty]}" Classes="secondary" HorizontalAlignment="Center" />
+          </StackPanel>
+          <ItemsControl ItemsSource="{Binding Filters}" IsVisible="{Binding Recent.Count}">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:FilterChip">
+                <ToggleButton Content="{Binding Label}" IsChecked="{Binding IsOn, Mode=OneWay}" Command="{Binding ApplyCommand}"
+                              Margin="0,0,6,6" Padding="14,5" FontSize="12" CornerRadius="16" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <ItemsControl ItemsSource="{Binding Tiles}">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:RecentTile">
+                <Border Classes="card" Width="172" Margin="0,0,12,12" Padding="0" ClipToBounds="True"
+                        IsVisible="{Binding Shown}" ToolTip.Tip="{Binding Detail}">
+                  <StackPanel>
+                    <Grid Height="120">
+                      <Border Background="{Binding Tint}" />
+                      <TextBlock Text="{Binding Glyph}" FontSize="38" Foreground="White" Opacity="0.92"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 IsVisible="{Binding Thumb, Converter={x:Static ObjectConverters.IsNull}}" />
+                      <Image Source="{Binding Thumb}" Stretch="UniformToFill" />
+                      <Border Background="#99000000" CornerRadius="6" Padding="6,2" Margin="8"
+                              HorizontalAlignment="Left" VerticalAlignment="Top">
+                        <TextBlock Text="{Binding Badge}" FontSize="10" FontWeight="Bold" Foreground="White" />
+                      </Border>
+                      <Border Background="#99000000" CornerRadius="6" Padding="6,2" Margin="8"
+                              HorizontalAlignment="Right" VerticalAlignment="Top" IsVisible="{Binding HasExtra}">
+                        <TextBlock Text="{Binding Extra}" FontSize="10" FontWeight="Bold" Foreground="White" />
+                      </Border>
+                    </Grid>
+                    <StackPanel Margin="12,9,12,2" Spacing="1">
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Classes.failed="{Binding Failed}" />
+                      <TextBlock Text="{Binding Detail}" Classes="secondary" FontSize="12" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="6,0,6,6" Spacing="2">
+                      <Button Classes="plain" Content="↗" FontSize="15" Padding="9,3" IsEnabled="{Binding !Failed}"
+                              ToolTip.Tip="{Binding $parent[Window].((vm:MainViewModel)DataContext).T[home.open_file]}"
+                              Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).OpenFileCommand}" CommandParameter="{Binding Item}" />
+                      <Button Classes="plain" Content="▭" FontSize="15" Padding="9,3"
+                              ToolTip.Tip="{Binding $parent[Window].((vm:MainViewModel)DataContext).T[home.open_folder]}"
+                              Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).OpenFolderCommand}" CommandParameter="{Binding Item}" />
+                      <Button Classes="plain" Content="↶" FontSize="15" Padding="9,3" IsEnabled="{Binding !Failed}"
+                              ToolTip.Tip="{Binding $parent[Window].((vm:MainViewModel)DataContext).T[home.undo]}"
+                              Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).UndoCommand}" CommandParameter="{Binding Item}" />
+                    </StackPanel>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- Presets -->
+        <StackPanel Spacing="20" IsVisible="{Binding IsPresets}">
+          <!-- Editor: what the donut holds (left) and how it will look (right) -->
+          <Border Classes="card" Padding="22">
+            <Grid Name="EditorGrid" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="28" RowSpacing="20">
+              <StackPanel Spacing="14">
+                <StackPanel Spacing="2">
+                  <TextBlock Text="{Binding T[x.editing_donut]}" Classes="headline" FontSize="18" />
+                  <TextBlock Text="{Binding ProfileHint}" Classes="secondary" FontSize="12" TextWrapping="Wrap" />
+                </StackPanel>
+                <ComboBox ItemsSource="{Binding ProfileChoices}" SelectedIndex="{Binding ProfileIndex}" HorizontalAlignment="Stretch" />
+                <Grid ColumnDefinitions="Auto,*">
+                  <StackPanel Orientation="Horizontal" Spacing="6">
+                    <ToggleButton Content="{Binding T[x.front]}" IsChecked="{Binding IsFront, Mode=OneWay}" Command="{Binding ShowFrontCommand}" Padding="18,6" CornerRadius="16" />
+                    <ToggleButton Content="{Binding T[x.back]}" IsChecked="{Binding IsBack, Mode=OneWay}" Command="{Binding ShowBackCommand}" Padding="18,6" CornerRadius="16" />
+                  </StackPanel>
+                  <TextBlock Grid.Column="1" Text="{Binding DonutSlotsText}" Classes="secondary" VerticalAlignment="Center" HorizontalAlignment="Right" />
+                </Grid>
+                <ItemsControl ItemsSource="{Binding DonutList}">
+                  <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:SliceRow">
+                      <Border Background="{DynamicResource IosFillBrush}" CornerRadius="16" Padding="12,3,4,3" Margin="0,0,6,6">
+                        <StackPanel Orientation="Horizontal" Spacing="4">
+                          <TextBlock Text="{Binding Label}" FontSize="12" VerticalAlignment="Center" />
+                          <Button Classes="plain" Content="✕" FontSize="11" Padding="6,2"
+                                  ToolTip.Tip="{Binding $parent[Window].((vm:MainViewModel)DataContext).T[x.remove_from_donut]}"
+                                  Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).RemoveFromDonutCommand}" CommandParameter="{Binding}" />
+                        </StackPanel>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBlock Text="{Binding DonutHint}" Classes="secondary" TextWrapping="Wrap" FontSize="12" />
+                <Border Background="#33FF9F0A" CornerRadius="12" Padding="12,10" IsVisible="{Binding HasDonutNote}">
+                  <StackPanel Spacing="8">
+                    <TextBlock Text="{Binding DonutNote}" TextWrapping="Wrap" FontSize="12" />
+                    <Button Classes="pill" Content="{Binding DonutNoteAction}" Command="{Binding AddToProfileCommand}" HorizontalAlignment="Left" Padding="14,5" FontSize="12" />
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+              <Border Name="PreviewPane" Grid.Column="1" CornerRadius="18" Background="{DynamicResource IosFillBrush}" Padding="16" MinWidth="320" VerticalAlignment="Top">
+                <StackPanel Spacing="10" HorizontalAlignment="Center">
+                  <TextBlock Text="{Binding T[x.preview_label]}" Classes="secondary" FontSize="11" FontWeight="SemiBold" HorizontalAlignment="Center" />
+                  <Border Name="DonutPreviewHost" Width="320" Height="320" HorizontalAlignment="Center" />
+                  <Border Name="StylePreviewHost" IsVisible="False" HorizontalAlignment="Center" />
+                </StackPanel>
+              </Border>
+            </Grid>
+          </Border>
+
+          <!-- Library: every tool, search and filter on top, switch a tool on to put it in the donut -->
+          <Grid ColumnDefinitions="*,300" ColumnSpacing="16">
+            <StackPanel VerticalAlignment="Center" Spacing="2">
+              <TextBlock Text="{Binding T[x.library]}" Classes="headline" FontSize="18" />
+              <TextBlock Text="{Binding PresetTotal, StringFormat={}{0} tools}" Classes="secondary" FontSize="12" />
+            </StackPanel>
+            <TextBox Grid.Column="1" Text="{Binding PresetFilter}" Watermark="{Binding T[common.search]}" CornerRadius="14" Padding="6,8">
+              <TextBox.InnerLeftContent>
+                <TextBlock Text="⌕" FontSize="17" Margin="12,0,0,0" VerticalAlignment="Center" Classes="secondary" />
+              </TextBox.InnerLeftContent>
+            </TextBox>
+          </Grid>
+          <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Margin="0,-6,0,0">
+            <ItemsControl ItemsSource="{Binding PresetChips}">
+              <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="6" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:FilterChip">
+                  <ToggleButton Content="{Binding Label}" IsChecked="{Binding IsOn, Mode=OneWay}" Command="{Binding ApplyCommand}"
+                                Margin="0,0,0,8" Padding="14,5" FontSize="12" CornerRadius="16" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </ScrollViewer>
+
+          <ItemsControl ItemsSource="{Binding PresetRows}">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:PresetRow">
+                <ToggleButton Classes="tool" Width="204" Margin="0,0,10,10" IsChecked="{Binding InDonut}"
+                              ToolTip.Tip="{Binding Detail}">
+                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+                    <Border Width="36" Height="36" CornerRadius="10" Background="{Binding Tint}" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Glyph}" FontSize="17" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="0">
+                      <TextBlock Text="{Binding Name}" FontWeight="SemiBold" FontSize="13" TextTrimming="CharacterEllipsis" />
+                      <TextBlock Text="{Binding Badge}" Classes="secondary" FontSize="11" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <Border Grid.Column="2" Classes="tick" Width="22" Height="22" CornerRadius="11" VerticalAlignment="Center">
+                      <TextBlock Classes="tickglyph" Text="+" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                  </Grid>
+                </ToggleButton>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <ItemsControl ItemsSource="{Binding PresetPages}" IsVisible="{Binding HasPager}" HorizontalAlignment="Center">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="6" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:PageChip">
+                <ToggleButton Content="{Binding Label}" IsChecked="{Binding IsOn, Mode=OneWay}" IsEnabled="{Binding IsEnabled}" Command="{Binding GoCommand}"
+                              MinWidth="38" Height="38" Padding="0" CornerRadius="19" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock Text="{Binding T[home.no_matches]}" Classes="secondary" IsVisible="{Binding !PresetRows.Count}" />
+
+          <Expander HorizontalAlignment="Stretch" Padding="4">
+            <Expander.Header>
+              <TextBlock Text="{Binding T[x.own_preset]}" Classes="headline" />
+            </Expander.Header>
+            <StackPanel Spacing="10" Margin="0,8,0,0">
+              <Grid ColumnDefinitions="*,130" ColumnSpacing="10">
+                <TextBox Text="{Binding CustomName}" Watermark="{Binding T[x.name_hint]}" />
+                <ComboBox Grid.Column="1" ItemsSource="{Binding TargetExtensions}" SelectedItem="{Binding CustomExt}" HorizontalAlignment="Stretch" />
+              </Grid>
+              <Grid ColumnDefinitions="110,*,50" ColumnSpacing="10">
+                <TextBlock Text="{Binding T[x.quality]}" VerticalAlignment="Center" />
+                <Slider Grid.Column="1" Minimum="10" Maximum="100" Value="{Binding CustomQuality}" />
+                <TextBlock Grid.Column="2" Text="{Binding CustomQuality, StringFormat={}{0:0}}" VerticalAlignment="Center" />
+              </Grid>
+              <Grid ColumnDefinitions="110,*,50" ColumnSpacing="10">
+                <TextBlock Text="{Binding T[x.size_pct]}" VerticalAlignment="Center" />
+                <Slider Grid.Column="1" Minimum="10" Maximum="200" Value="{Binding CustomScale}" />
+                <TextBlock Grid.Column="2" Text="{Binding CustomScale, StringFormat={}{0:0}}" VerticalAlignment="Center" />
+              </Grid>
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="{Binding T[x.gray_pics]}" VerticalAlignment="Center" />
+                <ToggleSwitch Grid.Column="1" IsChecked="{Binding CustomGray}" OnContent="" OffContent="" />
+              </Grid>
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <Button Classes="pill" Content="{Binding CustomSaveLabel}" Command="{Binding SaveCustomCommand}" />
+                <TextBlock Text="{Binding CustomNote}" Classes="secondary" VerticalAlignment="Center" />
+              </StackPanel>
+              <ItemsControl ItemsSource="{Binding CustomRows}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="svc:CustomPreset">
+                    <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,4,0,0">
+                      <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                      <Button Grid.Column="1" Classes="plain" Content="{Binding $parent[Window].((vm:MainViewModel)DataContext).T[x.edit]}" Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).EditCustomCommand}" CommandParameter="{Binding}" />
+                      <Button Grid.Column="2" Classes="plain" Content="{Binding $parent[Window].((vm:MainViewModel)DataContext).T[common.delete]}" Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).DeleteCustomCommand}" CommandParameter="{Binding}" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Expander>
+        </StackPanel>
+
+        <!-- Smart files -->
+        <StackPanel Spacing="14" IsVisible="{Binding IsSmart}">
+          <TextBlock Text="{Binding T[x.sf.intro]}" Classes="secondary" TextWrapping="Wrap" />
+          <Border Classes="card" Padding="18">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+              <Border Width="56" Height="56" CornerRadius="16" Background="{Binding SearchTint}" VerticalAlignment="Top">
+                <TextBlock Text="⌕" FontSize="28" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel Grid.Column="1" Spacing="10">
+                <TextBlock Text="{Binding T[x.sf.search_title]}" Classes="headline" />
+                <TextBlock Text="{Binding T[x.sf.search_text]}" Classes="secondary" TextWrapping="Wrap" />
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Name="SmartSearchBtn" Classes="pill" Content="{Binding T[x.sf.search_mine]}" />
+                  <Button Name="SmartSearchOtherBtn" Content="{Binding T[x.sf.search_other]}" />
+                </StackPanel>
+                <Border Height="1" Background="{DynamicResource IosSeparatorBrush}" Margin="0,6" />
+                <TextBlock Text="{Binding T[x.sf.folders]}" FontWeight="SemiBold" />
+                <TextBlock Text="{Binding T[x.sf.folders_text]}" Classes="secondary" FontSize="12" TextWrapping="Wrap" />
+                <ItemsControl ItemsSource="{Binding SearchFolders}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <Border Background="{DynamicResource IosFillBrush}" CornerRadius="12" Padding="12,4,4,4" Margin="0,0,0,6">
+                        <Grid ColumnDefinitions="*,Auto">
+                          <TextBlock Text="{Binding}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" FontSize="12" />
+                          <Button Grid.Column="1" Classes="plain" Content="✕" FontSize="11" Padding="8,3"
+                                  Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).RemoveSearchFolderCommand}" CommandParameter="{Binding}" />
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Grid ColumnDefinitions="*,Auto">
+                  <Button Name="AddSearchFolderBtn" Classes="plain" Content="{Binding T[x.sf.add_folder]}" HorizontalAlignment="Left" />
+                  <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="{Binding T[x.sf.background]}" Classes="secondary" FontSize="12" VerticalAlignment="Center" />
+                    <ToggleSwitch IsChecked="{Binding BackgroundIndex}" OnContent="" OffContent="" />
+                  </StackPanel>
+                </Grid>
+              </StackPanel>
+            </Grid>
+          </Border>
+          <Border Classes="card" Padding="18">
+            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="16">
+              <Border Width="56" Height="56" CornerRadius="16" Background="{Binding TidyTint}" VerticalAlignment="Top">
+                <TextBlock Text="▣" FontSize="28" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <StackPanel Grid.Column="1" Spacing="8">
+                <TextBlock Text="{Binding T[x.sf.tidy_title]}" Classes="headline" />
+                <TextBlock Text="{Binding T[x.sf.tidy_text]}" Classes="secondary" TextWrapping="Wrap" />
+                <Button Name="OrganizeBtn" Classes="pill" Content="{Binding T[x.sf.choose]}" HorizontalAlignment="Left" />
+              </StackPanel>
+            </Grid>
+          </Border>
+        </StackPanel>
+
+        <!-- Engines -->
+        <StackPanel Spacing="14" IsVisible="{Binding IsEngines}">
+          <Border Classes="card" Padding="18">
+            <StackPanel Spacing="12">
+              <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+                <TextBlock Text="{Binding T[x.engine_what]}" Classes="headline" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Classes="plain" Content="{Binding T[x.check_again]}" Command="{Binding CheckEnginesAgainCommand}" />
+              </Grid>
+              <TextBlock Text="{Binding T[x.engine_explain]}" TextWrapping="Wrap" Classes="secondary" />
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <Border Background="#2230D158" CornerRadius="14" Padding="12,5">
+                  <TextBlock Text="{Binding EngineSummary}" Foreground="#30D158" FontWeight="SemiBold" FontSize="13" />
+                </Border>
+                <Border Background="#33FF9F0A" CornerRadius="14" Padding="12,5" IsVisible="{Binding EngineHasNeeds}">
+                  <TextBlock Text="{Binding EngineNeeds}" Foreground="#FF9F0A" FontWeight="SemiBold" FontSize="13" />
+                </Border>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <ItemsControl ItemsSource="{Binding EngineChips}">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:FilterChip">
+                <ToggleButton Content="{Binding Label}" IsChecked="{Binding IsOn, Mode=OneWay}" Command="{Binding ApplyCommand}"
+                              Margin="0,0,6,6" Padding="14,5" FontSize="12" CornerRadius="16" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <ItemsControl ItemsSource="{Binding EngineGroups}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:EngineGroup">
+                <StackPanel Spacing="10" Margin="0,6,0,0" IsVisible="{Binding Shown}">
+                  <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                    <Border Width="40" Height="40" CornerRadius="12" Background="{Binding Tint}">
+                      <TextBlock Text="{Binding Glyph}" FontSize="20" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding Title}" FontSize="17" FontWeight="Bold" />
+                      <TextBlock Text="{Binding Tagline}" Classes="secondary" FontSize="12" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="2" Text="{Binding Count}" Classes="secondary" FontSize="12" VerticalAlignment="Center" />
+                  </Grid>
+                  <ItemsControl ItemsSource="{Binding Rows}">
+                    <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:EngineRow">
+                        <Border Classes="card" Width="366" Margin="0,0,12,12" Padding="12" IsVisible="{Binding Shown}">
+                          <StackPanel Spacing="8">
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                              <Border Width="42" Height="42" CornerRadius="12" Background="{Binding Tint}" VerticalAlignment="Top">
+                                <TextBlock Text="{Binding Glyph}" FontSize="20" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                              </Border>
+                              <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="1">
+                                <TextBlock Text="{Binding ShortName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding Simple}" Classes="secondary" FontSize="12" TextWrapping="Wrap" MaxLines="3" />
+                              </StackPanel>
+                              <Grid Grid.Column="2" VerticalAlignment="Top">
+                                <Border Background="#2230D158" CornerRadius="10" Padding="8,2" IsVisible="{Binding Ready}">
+                                  <TextBlock Text="{Binding ReadyText}" Foreground="#30D158" FontSize="11" FontWeight="SemiBold" />
+                                </Border>
+                                <Border Background="#33FF9F0A" CornerRadius="10" Padding="8,2" IsVisible="{Binding !Ready}">
+                                  <TextBlock Text="{Binding NeedsText}" Foreground="#FF9F0A" FontSize="11" FontWeight="SemiBold" />
+                                </Border>
+                              </Grid>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,Auto">
+                              <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Button Classes="pill" Content="{Binding $parent[Window].((vm:MainViewModel)DataContext).T[x.install]}" Command="{Binding InstallCommand}" IsVisible="{Binding CanInstall}" IsEnabled="{Binding !Busy}" Padding="14,5" FontSize="12" />
+                                <ProgressBar IsIndeterminate="True" Width="60" IsVisible="{Binding Busy}" />
+                              </StackPanel>
+                              <Button Grid.Column="1" Classes="plain" Content="{Binding DetailsLabel}" Command="{Binding ToggleCommand}" FontSize="12" Padding="8,2" />
+                            </Grid>
+                            <StackPanel Spacing="8" IsVisible="{Binding IsOpen}">
+                              <Border Height="1" Background="{DynamicResource IosSeparatorBrush}" />
+                              <TextBlock Text="{Binding Description}" Classes="secondary" FontSize="12" TextWrapping="Wrap" />
+                              <TextBlock Text="{Binding Formats}" FontSize="12" TextWrapping="Wrap" />
+                              <TextBlock Text="{Binding Status}" Classes="secondary" FontSize="11" TextTrimming="CharacterEllipsis" />
+                              <Grid ColumnDefinitions="*,Auto,Auto">
+                                <TextBlock Text="{Binding $parent[Window].((vm:MainViewModel)DataContext).T[x.priority]}" Classes="secondary" FontSize="12" VerticalAlignment="Center" TextWrapping="Wrap" />
+                                <Button Grid.Column="1" Classes="plain" Content="▲" Command="{Binding UpCommand}" ToolTip.Tip="Higher priority" />
+                                <Button Grid.Column="2" Classes="plain" Content="▼" Command="{Binding DownCommand}" ToolTip.Tip="Lower priority" />
+                              </Grid>
+                              <Button Classes="plain" Content="{Binding $parent[Window].((vm:MainViewModel)DataContext).T[x.use_copy]}" Command="{Binding UseMyCopyCommand}" IsVisible="{Binding IsExternal}" HorizontalAlignment="Left" FontSize="12" />
+                            </StackPanel>
+                          </StackPanel>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- Watch folders -->
+        <StackPanel Spacing="12" IsVisible="{Binding IsWatch}">
+          <Button Name="AddWatchBtn" Classes="pill" Content="{Binding T[x.add_folder]}" HorizontalAlignment="Left" />
+          <TextBlock Text="{Binding T[x.watch_hint]}" Classes="secondary" />
+          <ItemsControl ItemsSource="{Binding WatchRows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:WatchRow">
+                <Border Classes="card" Margin="0,0,0,8" Padding="14,10">
+                  <Grid ColumnDefinitions="*,170,Auto,Auto" ColumnSpacing="12">
+                    <TextBlock Text="{Binding Path}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" SelectedItem="{Binding Preset}"
+                              ItemsSource="{Binding $parent[Window].((vm:MainViewModel)DataContext).HomePresets}">
+                      <ComboBox.ItemTemplate><DataTemplate x:DataType="svc:Preset"><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <ToggleSwitch Grid.Column="2" IsChecked="{Binding Enabled}" OnContent="" OffContent="" />
+                    <Button Grid.Column="3" Classes="plain" Content="{Binding $parent[Window].((vm:MainViewModel)DataContext).T[common.delete]}"
+                            Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).RemoveWatchCommand}" CommandParameter="{Binding}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- Shortcuts -->
+        <Border Classes="card" IsVisible="{Binding IsTriggers}">
+          <StackPanel Spacing="14">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="{Binding T[x.enable_shortcuts]}" Classes="headline" VerticalAlignment="Center" />
+              <ToggleSwitch Grid.Column="1" IsChecked="{Binding TriggersEnabled}" OnContent="" OffContent="" />
+            </Grid>
+            <TextBlock Text="{Binding T[x.modifier]}" Classes="headline" />
+            <ComboBox ItemsSource="{Binding Modifiers}" SelectedIndex="{Binding Modifier}" HorizontalAlignment="Stretch" />
+            <TextBlock Text="{Binding TriggerHint}" Classes="secondary" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <!-- Donut toolbar -->
+        <StackPanel Spacing="12" IsVisible="{Binding IsToolbar}">
+          <Border Classes="card">
+            <StackPanel Spacing="8">
+              <TextBlock Text="{Binding T[x.toolbar_style]}" Classes="headline" />
+              <ComboBox ItemsSource="{Binding ToolbarStyles}" SelectedIndex="{Binding ToolbarStyleIndex}" HorizontalAlignment="Stretch" />
+              <TextBlock Text="{Binding T[x.toolbar_style_hint]}" Classes="secondary" FontSize="12" TextWrapping="Wrap" />
+            </StackPanel>
+          </Border>
+          <Border Classes="card">
+            <StackPanel Spacing="10">
+              <TextBlock Text="{Binding T[x.donut_for]}" Classes="headline" />
+              <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+                <ComboBox ItemsSource="{Binding ProfileChoices}" SelectedIndex="{Binding ProfileIndex}" HorizontalAlignment="Stretch" />
+                <Button Grid.Column="1" Classes="plain" Content="{Binding T[toolbar.add_profile]}" Command="{Binding NewProfileCommand}" />
+                <Button Grid.Column="2" Classes="plain" Content="{Binding T[toolbar.delete_profile]}" Command="{Binding DeleteProfileCommand}" IsVisible="{Binding IsCustomProfile}" />
+              </Grid>
+              <StackPanel Spacing="8" IsVisible="{Binding IsCustomProfile}">
+                <TextBox Text="{Binding ProfileName}" Watermark="{Binding T[x.profile_name]}" />
+                <TextBox Text="{Binding ProfileExtensions}" Watermark="{Binding T[x.profile_ext]}" />
+              </StackPanel>
+              <TextBlock Text="{Binding T[x.face]}" Classes="headline" />
+              <ComboBox ItemsSource="{Binding Faces}" SelectedIndex="{Binding FaceIndex}" HorizontalAlignment="Stretch" />
+              <TextBlock Text="{Binding T[x.flip_hint]}" Classes="secondary" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding ProfileHint}" Classes="secondary" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding T[x.profile_presets]}" Classes="secondary" />
+            </StackPanel>
+          </Border>
+          <Border Classes="card">
+            <StackPanel Spacing="12">
+              <TextBlock Text="{Binding T[theme.donut_opacity]}" Classes="headline" />
+              <Slider Minimum="0.4" Maximum="1" Value="{Binding DonutOpacity}" />
+              <Button Name="PreviewDonutBtn" Classes="pill" Content="{Binding T[x.preview_donut]}" HorizontalAlignment="Left" />
+            </StackPanel>
+          </Border>
+          <TextBlock Text="{Binding T[toolbar.hint_reorder]}" Classes="secondary" />
+          <ItemsControl ItemsSource="{Binding DonutList}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:SliceRow">
+                <Border Classes="card" Margin="0,0,0,8" Padding="14,6">
+                  <Grid ColumnDefinitions="*,Auto,Auto">
+                    <TextBlock Text="{Binding Label}" VerticalAlignment="Center" />
+                    <Button Grid.Column="1" Classes="plain" Content="▲" Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).MoveUpCommand}" CommandParameter="{Binding}" />
+                    <Button Grid.Column="2" Classes="plain" Content="▼" Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).MoveDownCommand}" CommandParameter="{Binding}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- Groups -->
+        <StackPanel Spacing="12" IsVisible="{Binding IsToolbar}">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel>
+              <TextBlock Text="{Binding T[x.groups]}" Classes="headline" />
+              <TextBlock Text="{Binding T[x.groups_hint]}" Classes="secondary" TextWrapping="Wrap" />
+            </StackPanel>
+            <Button Grid.Column="1" Classes="pill" Content="{Binding T[x.new_group]}" Command="{Binding NewGroupCommand}" VerticalAlignment="Top" />
+          </Grid>
+          <ItemsControl ItemsSource="{Binding GroupRows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:GroupRow">
+                <Border Classes="card" Margin="0,0,0,8">
+                  <StackPanel Spacing="8">
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                      <TextBox Text="{Binding Name}" />
+                      <Button Grid.Column="1" Classes="plain" Content="{Binding $parent[Window].((vm:MainViewModel)DataContext).T[common.delete]}" Command="{Binding DeleteCommand}" />
+                    </Grid>
+                    <ComboBox ItemsSource="{Binding $parent[Window].((vm:MainViewModel)DataContext).HomePresets}" SelectedItem="{Binding PickToAdd}" HorizontalAlignment="Stretch"
+                              PlaceholderText="+ preset">
+                      <ComboBox.ItemTemplate><DataTemplate x:DataType="svc:Preset"><TextBlock Text="{Binding DisplayName}" /></DataTemplate></ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <ItemsControl ItemsSource="{Binding Members}">
+                      <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:MemberChip">
+                          <Button Classes="plain" Margin="0,0,6,6" Content="{Binding Label}" Padding="10,4"
+                                  Command="{Binding $parent[ItemsControl].((vm:GroupRow)DataContext).RemoveMemberCommand}" CommandParameter="{Binding}"
+                                  ToolTip.Tip="✕" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- Fields -->
+        <StackPanel Spacing="8" IsVisible="{Binding IsFields}">
+          <ItemsControl ItemsSource="{Binding FieldRows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:FieldRow">
+                <Border Classes="card" Margin="0,0,0,8" Padding="14,8">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                    <ToggleSwitch Grid.Column="1" IsChecked="{Binding Enabled}" OnContent="" OffContent="" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- AI -->
+        <StackPanel Spacing="20" IsVisible="{Binding IsAi}">
+          <Border Classes="card" Padding="22">
+            <StackPanel Spacing="14">
+              <StackPanel Spacing="2">
+                <TextBlock Text="{Binding T[x.ai.connect]}" Classes="headline" FontSize="18" />
+                <TextBlock Text="{Binding T[x.ai.connect_hint]}" Classes="secondary" FontSize="12" TextWrapping="Wrap" />
+              </StackPanel>
+              <Border Name="AiSetupHost" />
+            </StackPanel>
+          </Border>
+          <Border Classes="card" Padding="22">
+            <StackPanel Spacing="12">
+              <TextBlock Text="{Binding T[x.ai.tools]}" Classes="headline" FontSize="18" />
+              <TextBlock Text="{Binding T[x.ai.tools_hint]}" Classes="secondary" FontSize="12" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding T[x.ai.tools_list]}" TextWrapping="Wrap" LineHeight="26" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- General -->
+        <Border Classes="card" IsVisible="{Binding IsGeneral}">
+          <StackPanel Spacing="14">
+            <TextBlock Text="{Binding T[x.language]}" Classes="headline" />
+            <ComboBox ItemsSource="{Binding Languages}" SelectedIndex="{Binding Language}" HorizontalAlignment="Stretch" />
+                        <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="{Binding T[x.keep_tray]}" VerticalAlignment="Center" />
+              <ToggleSwitch Grid.Column="1" IsChecked="{Binding CloseToTray}" OnContent="" OffContent="" />
+            </Grid>
+            <TextBlock Text="{Binding T[x.output_folder]}" Classes="headline" />
+            <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+              <TextBlock Text="{Binding OutputFolderLabel}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Classes="secondary" />
+              <Button Grid.Column="1" Classes="plain" Content="{Binding T[x.choose]}" Command="{Binding ChooseOutputFolderCommand}" />
+              <Button Grid.Column="2" Classes="plain" Content="{Binding T[x.reset]}" Command="{Binding ResetOutputFolderCommand}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="{Binding T[x.open_when_done]}" VerticalAlignment="Center" />
+              <ToggleSwitch Grid.Column="1" IsChecked="{Binding OpenFolderWhenDone}" OnContent="" OffContent="" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="{Binding T[x.ctx_menu]}" VerticalAlignment="Center" TextWrapping="Wrap" />
+              <ToggleSwitch Grid.Column="1" IsChecked="{Binding ContextMenu}" OnContent="" OffContent="" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="{Binding T[x.check_updates]}" VerticalAlignment="Center" />
+              <ToggleSwitch Grid.Column="1" IsChecked="{Binding CheckUpdates}" OnContent="" OffContent="" />
+            </Grid>
+          </StackPanel>
+        </Border>
+
+        <!-- Translation model -->
+        <Border Classes="card" IsVisible="{Binding IsGeneral}">
+          <StackPanel Spacing="10">
+            <TextBlock Text="{Binding T[x.model.title]}" Classes="headline" />
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+              <ComboBox ItemsSource="{Binding OllamaModels}" SelectedItem="{Binding OllamaModel}" HorizontalAlignment="Stretch" />
+              <Button Grid.Column="1" Classes="plain" Content="{Binding T[x.model.refresh]}" Command="{Binding RefreshModelsCommand}" />
+            </Grid>
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8">
+              <TextBox Text="{Binding PullTag}" Watermark="{Binding T[x.model.tag_hint]}" />
+              <Button Grid.Column="1" Classes="pill" Content="{Binding T[x.model.pull]}" Command="{Binding PullModelCommand}" IsEnabled="{Binding !PullBusy}" />
+            </Grid>
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <ProgressBar IsIndeterminate="True" Width="80" IsVisible="{Binding PullBusy}" />
+              <TextBlock Text="{Binding PullStatus}" Classes="secondary" TextWrapping="Wrap" VerticalAlignment="Center" />
+            </StackPanel>
+            <TextBlock Text="{Binding T[x.model.tip]}" Classes="secondary" TextWrapping="Wrap" />
+          </StackPanel>
+        </Border>
+
+        <!-- Theme -->
+        <StackPanel Spacing="20" IsVisible="{Binding IsTheme}">
+
+          <!-- live preview: built from the same colours the whole app uses, so it changes as you touch anything below -->
+          <Border Classes="card" Padding="18">
+            <StackPanel Spacing="12">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="2">
+                  <TextBlock Text="{Binding T[x.th.preview]}" Classes="headline" FontSize="18" />
+                  <TextBlock Text="{Binding ThemeName}" Classes="secondary" FontSize="12" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                  <Button Content="{Binding T[x.th.surprise_btn]}" Command="{Binding SurpriseMeCommand}" Padding="14,7" CornerRadius="16" />
+                  <Button Content="{Binding T[x.th.reset_btn]}" Command="{Binding ResetThemeCommand}" Padding="14,7" CornerRadius="16" Classes="plain" />
+                </StackPanel>
+              </Grid>
+              <Border CornerRadius="18" ClipToBounds="True" Background="{DynamicResource IosBgBrush}" BorderBrush="{DynamicResource IosSeparatorBrush}" BorderThickness="1" Height="190">
+                <Grid ColumnDefinitions="150,*">
+                  <Border Background="{DynamicResource IosSidebarBrush}" BorderBrush="{DynamicResource IosSeparatorBrush}" BorderThickness="0,0,1,0" Padding="12">
+                    <StackPanel Spacing="6">
+                      <StackPanel Orientation="Horizontal" Spacing="8" Margin="2,0,0,8">
+                        <Border Width="22" Height="22" CornerRadius="7" Background="{DynamicResource IosAccentBrush}" />
+                        <TextBlock Text="Mochi" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" />
+                      </StackPanel>
+                      <Border CornerRadius="9" Background="{DynamicResource IosAccentBrush}" Padding="10,6">
+                        <TextBlock Text="Home" Foreground="White" FontSize="12" FontWeight="SemiBold" />
+                      </Border>
+                      <Border Padding="10,6"><TextBlock Text="Presets" FontSize="12" /></Border>
+                      <Border Padding="10,6"><TextBlock Text="AI" FontSize="12" /></Border>
+                    </StackPanel>
+                  </Border>
+                  <StackPanel Grid.Column="1" Margin="18,14" Spacing="10">
+                    <TextBlock Text="Home" FontSize="20" FontWeight="Bold" />
+                    <Border Classes="card" Padding="12">
+                      <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10">
+                        <StackPanel Spacing="2" VerticalAlignment="Center">
+                          <TextBlock Text="report.pdf" FontWeight="SemiBold" FontSize="13" />
+                          <TextBlock Text="To PNG  ·  3 pages" Classes="secondary" FontSize="11" />
+                        </StackPanel>
+                        <Button Grid.Column="1" Classes="pill" Content="Convert" Padding="16,7" FontSize="12" />
+                      </Grid>
+                    </Border>
+                    <Border Classes="card" Padding="12">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="Open folder when done" FontSize="12" VerticalAlignment="Center" />
+                        <ToggleSwitch Grid.Column="1" IsChecked="True" OnContent="" OffContent="" />
+                      </Grid>
+                    </Border>
+                  </StackPanel>
+                </Grid>
+              </Border>
+            </StackPanel>
+          </Border>
+
+          <!-- looks -->
+          <Border Classes="card" Padding="22">
+            <StackPanel Spacing="12">
+              <StackPanel Spacing="2">
+                <TextBlock Text="{Binding T[x.th.looks]}" Classes="headline" FontSize="18" />
+                <TextBlock Text="{Binding T[x.th.looks_hint]}" Classes="secondary" FontSize="12" TextWrapping="Wrap" />
+              </StackPanel>
+              <ItemsControl ItemsSource="{Binding ThemeTiles}">
+                <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ThemeTile">
+                    <Button Classes="themetile" Command="{Binding Select}" Width="124" Height="88" Margin="0,0,10,10" Padding="0" CornerRadius="16"
+                            Background="{Binding Bg}" BorderBrush="{Binding Ring}" BorderThickness="2.5">
+                      <Grid Margin="11">
+                        <Border Width="66" Height="30" CornerRadius="9" Background="{Binding Card}" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        <Ellipse Width="16" Height="16" Fill="{Binding Accent}" HorizontalAlignment="Right" VerticalAlignment="Top" />
+                        <TextBlock Text="{Binding Name}" Foreground="{Binding Text}" FontSize="12.5" FontWeight="SemiBold" VerticalAlignment="Bottom" />
+                      </Grid>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <!-- appearance and accent -->
+          <Border Classes="card" Padding="22">
+            <StackPanel Spacing="16">
+              <StackPanel Spacing="8" IsEnabled="{Binding ModeEnabled}">
+                <TextBlock Text="{Binding T[theme.mode]}" Classes="headline" FontSize="18" />
+                <ItemsControl ItemsSource="{Binding ModeChips}">
+                  <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:FilterChip">
+                      <ToggleButton Content="{Binding Label}" IsChecked="{Binding IsOn, Mode=OneWay}" Command="{Binding ApplyCommand}" Margin="0,0,6,6" Padding="16,6" FontSize="13" CornerRadius="16" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Grid ColumnDefinitions="Auto,100,Auto,100,*" ColumnSpacing="10" IsVisible="{Binding ShowAutoTimes}">
+                  <TextBlock Text="{Binding T[x.th.dark_from]}" VerticalAlignment="Center" Classes="secondary" />
+                  <TextBox Grid.Column="1" Text="{Binding AutoFrom}" Watermark="19:00" />
+                  <TextBlock Grid.Column="2" Text="{Binding T[x.th.until]}" VerticalAlignment="Center" Classes="secondary" />
+                  <TextBox Grid.Column="3" Text="{Binding AutoTo}" Watermark="07:00" />
+                </Grid>
+                <TextBlock Text="{Binding T[x.th.mode_fixed]}" Classes="secondary" FontSize="12" TextWrapping="Wrap" IsVisible="{Binding !ModeEnabled}" />
+              </StackPanel>
+
+              <StackPanel Spacing="10">
+                <TextBlock Text="{Binding T[theme.accent]}" Classes="headline" FontSize="18" />
+                <ItemsControl ItemsSource="{Binding Swatches}">
+                  <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <Button Width="36" Height="36" CornerRadius="18" Margin="0,0,10,0" Background="{Binding}"
+                              Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).SetAccentCommand}" CommandParameter="{Binding}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Grid ColumnDefinitions="*,120" ColumnSpacing="14">
+                  <Slider Minimum="0" Maximum="360" Value="{Binding AccentHue}" VerticalAlignment="Center" />
+                  <TextBox Grid.Column="1" Text="{Binding AccentHex}" Watermark="#0A84FF" />
+                </Grid>
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="1">
+                    <TextBlock Text="{Binding T[x.th.living]}" />
+                    <TextBlock Text="{Binding T[x.th.living_hint]}" Classes="secondary" FontSize="12" />
+                  </StackPanel>
+                  <ToggleSwitch Grid.Column="1" IsChecked="{Binding AccentCycle}" OnContent="" OffContent="" VerticalAlignment="Center" />
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- surfaces -->
+          <Border Classes="card" Padding="22">
+            <StackPanel Spacing="16">
+              <TextBlock Text="{Binding T[x.th.surfaces]}" Classes="headline" FontSize="18" />
+              <StackPanel Spacing="4">
+                <Grid ColumnDefinitions="*,Auto"><TextBlock Text="{Binding T[x.th.tint]}" /><TextBlock Grid.Column="1" Text="{Binding BgTint, StringFormat={}{0:P0}}" Classes="secondary" /></Grid>
+                <Slider Minimum="0" Maximum="1" Value="{Binding BgTint}" />
+              </StackPanel>
+              <StackPanel Spacing="4">
+                <Grid ColumnDefinitions="*,Auto"><TextBlock Text="{Binding T[theme.corner_radius]}" /><TextBlock Grid.Column="1" Text="{Binding Softness, StringFormat={}{0:0}}" Classes="secondary" /></Grid>
+                <Slider Minimum="4" Maximum="32" Value="{Binding Softness}" />
+              </StackPanel>
+              <Grid ColumnDefinitions="*,Auto" IsEnabled="{Binding OledEnabled}">
+                <StackPanel Spacing="1">
+                  <TextBlock Text="{Binding T[x.th.oled]}" />
+                  <TextBlock Text="{Binding T[x.th.oled_hint]}" Classes="secondary" FontSize="12" />
+                </StackPanel>
+                <ToggleSwitch Grid.Column="1" IsChecked="{Binding Oled}" OnContent="" OffContent="" VerticalAlignment="Center" />
+              </Grid>
+              <StackPanel Spacing="8">
+                <StackPanel Spacing="1">
+                  <TextBlock Text="{Binding T[x.th.glass]}" />
+                  <TextBlock Text="{Binding T[x.th.glass_hint]}" Classes="secondary" FontSize="12" TextWrapping="Wrap" />
+                </StackPanel>
+                <ItemsControl ItemsSource="{Binding MaterialChips}">
+                  <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:FilterChip">
+                      <ToggleButton Content="{Binding Label}" IsChecked="{Binding IsOn, Mode=OneWay}" Command="{Binding ApplyCommand}" Margin="0,0,6,6" Padding="16,6" FontSize="13" CornerRadius="16" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- layout, text, motion -->
+          <Border Classes="card" Padding="22">
+            <StackPanel Spacing="16">
+              <TextBlock Text="{Binding T[x.th.layout]}" Classes="headline" FontSize="18" />
+              <StackPanel Spacing="8">
+                <TextBlock Text="{Binding T[x.th.density]}" />
+                <ItemsControl ItemsSource="{Binding DensityChips}">
+                  <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:FilterChip">
+                      <ToggleButton Content="{Binding Label}" IsChecked="{Binding IsOn, Mode=OneWay}" Command="{Binding ApplyCommand}" Margin="0,0,6,6" Padding="16,6" FontSize="13" CornerRadius="16" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+              <StackPanel Spacing="8">
+                <TextBlock Text="{Binding T[x.th.font]}" />
+                <ComboBox ItemsSource="{Binding FontChoices}" SelectedIndex="{Binding FontIndex}" HorizontalAlignment="Stretch" />
+              </StackPanel>
+              <StackPanel Spacing="4">
+                <Grid ColumnDefinitions="*,Auto"><TextBlock Text="{Binding T[x.th.text_size]}" /><TextBlock Grid.Column="1" Text="{Binding TextScale, StringFormat={}{0:P0}}" Classes="secondary" /></Grid>
+                <Slider Minimum="0.8" Maximum="1.4" Value="{Binding TextScale}" />
+              </StackPanel>
+              <StackPanel Spacing="4">
+                <TextBlock Text="{Binding T[theme.window_size]}" />
+                <Slider Minimum="0.7" Maximum="1.8" Value="{Binding WindowScale}" />
+                <TextBlock Text="{Binding T[x.size_hint]}" Classes="secondary" FontSize="12" TextWrapping="Wrap" />
+              </StackPanel>
+              <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="{Binding T[theme.reduce_motion]}" VerticalAlignment="Center" />
+                <ToggleSwitch Grid.Column="1" IsChecked="{Binding ReduceMotion}" OnContent="" OffContent="" />
+              </Grid>
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="1">
+                  <TextBlock Text="{Binding T[x.th.sound]}" />
+                  <TextBlock Text="{Binding T[x.th.sound_hint]}" Classes="secondary" FontSize="12" />
+                </StackPanel>
+                <ToggleSwitch Grid.Column="1" IsChecked="{Binding SoundEffects}" OnContent="" OffContent="" VerticalAlignment="Center" />
+              </Grid>
+              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14" IsEnabled="{Binding SoundEffects}">
+                <TextBlock Text="{Binding T[x.th.volume]}" VerticalAlignment="Center" />
+                <Slider Grid.Column="1" Minimum="0.1" Maximum="1" Value="{Binding SoundVolume}" VerticalAlignment="Center" />
+                <Button Grid.Column="2" Content="{Binding T[x.th.sound_preview]}" Command="{Binding PreviewSoundCommand}" Padding="16,7" CornerRadius="16" />
+              </Grid>
+            </StackPanel>
+          </Border>
+
+          <!-- share -->
+          <Border Classes="card" Padding="22">
+            <StackPanel Spacing="12">
+              <StackPanel Spacing="2">
+                <TextBlock Text="{Binding T[x.th.share]}" Classes="headline" FontSize="18" />
+                <TextBlock Text="{Binding T[x.th.share_hint]}" Classes="secondary" FontSize="12" TextWrapping="Wrap" />
+              </StackPanel>
+              <StackPanel Orientation="Horizontal" Spacing="10">
+                <Button Classes="pill" Content="{Binding T[x.th.copy_code]}" Command="{Binding CopyThemeCodeCommand}" Padding="18,9" />
+                <Button Content="{Binding T[x.th.paste_code]}" Command="{Binding PasteThemeCodeCommand}" Padding="18,9" CornerRadius="18" />
+              </StackPanel>
+              <TextBlock Text="{Binding ThemeStatus}" Classes="secondary" FontSize="12.5" TextWrapping="Wrap" IsVisible="{Binding ThemeStatus.Length}" />
+            </StackPanel>
+          </Border>
+        </StackPanel>
+
+        <!-- About -->
+        <Border Classes="card" IsVisible="{Binding IsAbout}">
+          <StackPanel Spacing="8">
+            <Image Source="avares://Mochi/Assets/Mascot/hello.png" Height="84" Stretch="Uniform" HorizontalAlignment="Left" />
+            <TextBlock Text="{Binding Version}" Classes="headline" />
+            <TextBlock Text="{Binding T[about.support_text]}" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding T[about.license]}" Classes="secondary" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding T[x.about_based]}" Classes="secondary" TextWrapping="Wrap" />
+            <Button Classes="pill" Content="{Binding WhatsNewLabel}" Command="{Binding WhatsNewCommand}" HorizontalAlignment="Left" Margin="0,8,0,0" />
+            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
+              <Button Classes="plain" Content="{Binding T[x.up.check]}" Command="{Binding CheckForUpdatesCommand}" IsEnabled="{Binding !UpdateBusy}" />
+              <Button Classes="pill" Content="{Binding T[x.up.install]}" Command="{Binding InstallUpdateCommand}" IsVisible="{Binding UpdateReady}" IsEnabled="{Binding !UpdateBusy}" />
+              <TextBlock Text="{Binding UpdateStatus}" Classes="secondary" VerticalAlignment="Center" TextWrapping="Wrap" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</Window>
