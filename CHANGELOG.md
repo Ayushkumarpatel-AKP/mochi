@@ -7,6 +7,16 @@ Newest first. Every release also gets a page in `Mochi/Assets/Guide/whatsnew/<ve
 
 <!-- New things go here while you work, then move under a version heading when you release. -->
 
+## 1.1.7
+
+### Added
+- **Privacy Guard.** Covers what should not be shared in a picture or PDF: Aadhaar, PAN, phone, email, card and account numbers, faces, QR codes, names and addresses. It reads the safe copy again to check nothing is left, and removes hidden file details.
+- **An update pop-up.** When a newer Mochi is out, a small window shows what is new and installs it with one click. Mochi checks when it starts and every few hours.
+
+### Fixed
+- The program's file details (Task Manager, Properties) now say Mochi.
+- After an automatic update, Mochi starts again by itself.
+
 ## 1.1.6
 
 ### Added

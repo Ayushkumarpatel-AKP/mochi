@@ -16,6 +16,7 @@ public static class ToolHooks
     public static Func<string, Task<string?>>? SheetStudio { get; set; }
     public static Func<string, Task<string?>>? RemoveBg { get; set; }
     public static Func<string, Task<string?>>? Erase { get; set; }
+    public static Func<string, Task<string?>>? Privacy { get; set; }
     public static Func<string, Task<string?>>? Dupes { get; set; }
     public static Func<string, Task<string?>>? SmartSearch { get; set; }
     public static Func<string, Task<string?>>? Organize { get; set; }
@@ -39,6 +40,7 @@ public sealed class UiToolsEngine : EngineBase
 
     public override bool CanHandle(string e, Preset p) =>
         (p.Mode.StartsWith("annotate") || p.Mode is "perspective" or "removebg" or "erase") && Is(e, Img)
+        || (p.Mode == "privacy" && (Is(e, Img) || e == ".pdf"))
         || (p.Mode is "dupes" or "smartsearch" or "organize" && e == "")
         || (p.Mode == "pdfedit" && e == ".pdf")
         || (p.Mode == "sheetstudio" && Is(e, ".xlsx", ".xlsm", ".xls", ".ods", ".csv"));
@@ -52,6 +54,7 @@ public sealed class UiToolsEngine : EngineBase
             "perspective" => ToolHooks.Perspective,
             "removebg" => ToolHooks.RemoveBg,
             "erase" => ToolHooks.Erase,
+            "privacy" => ToolHooks.Privacy,
             "dupes" => ToolHooks.Dupes,
             "smartsearch" => ToolHooks.SmartSearch,
             "organize" => ToolHooks.Organize,

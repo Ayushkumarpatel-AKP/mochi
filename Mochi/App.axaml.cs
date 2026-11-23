@@ -73,6 +73,25 @@ public partial class App : Application
         catch { /* logging must never throw */ }
     }
 
+    private string _announced = "";
+
+    /// <summary>Asks GitHub for the latest release; when it is newer, the tray shows an entry and a pop-up offers to install it.</summary>
+    private async Task CheckForUpdate(bool atStart)
+    {
+        if (!Settings.CheckUpdates) return;
+        if (atStart) await Task.Delay(TimeSpan.FromSeconds(6));   // let the app finish starting first
+        var r = await Updater.CheckAsync();
+        Settings.LastUpdateCheck = DateTime.UtcNow; Settings.Save();
+        if (!r.Newer) return;
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            if (_trayUpdate is { } m) { m.Header = Loc.T("tray.update", r.Version); m.IsVisible = true; }
+            if (_announced == r.Version) return;
+            _announced = r.Version;
+            UpdateWindow.Offer(r);
+        });
+    }
+
     public override void OnFrameworkInitializationCompleted()
     {
         Avalonia.Threading.Dispatcher.UIThread.UnhandledException += (_, e) => { LogCrash(e.Exception); e.Handled = true; };
@@ -104,6 +123,7 @@ public partial class App : Application
             ToolHooks.SheetStudio = async p => await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => SheetStudioWindow.RunAsync(p));
             ToolHooks.Perspective = async p => await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => PerspectiveWindow.RunAsync(p));
             ToolHooks.RemoveBg = async p => await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => BgRemoveWindow.RunAsync(p));
+            ToolHooks.Privacy = async p => await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => PrivacyWindow.RunAsync(p));
             ToolHooks.Erase = async p => await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => EraseWindow.RunAsync(p));
             ToolHooks.Dupes = async p => await Avalonia.Threading.Dispatcher.UIThread.InvokeAsync(() => DupesWindow.RunAsync(p));
             SmartIndexService.Start();
@@ -118,7 +138,7 @@ public partial class App : Application
                 Avalonia.Threading.Dispatcher.UIThread.Post(Guide.ShowAtStartup);
 
             if (Program.StartTool is { } st)
-                Avalonia.Threading.Dispatcher.UIThread.Post(async () => { _ = st.Tool switch { "annotate" => await ToolHooks.Annotate!(st.File), "perspective" => await ToolHooks.Perspective!(st.File), "removebg" => await ToolHooks.RemoveBg!(st.File), "erase" => await ToolHooks.Erase!(st.File), "dupes" => await ToolHooks.Dupes!(st.File), "smartsearch" => await ToolHooks.SmartSearch!(st.File), "organize" => await ToolHooks.Organize!(st.File), "sheet" => await ToolHooks.SheetStudio!(st.File), _ => await ToolHooks.PdfEdit!(st.File) }; });
+                Avalonia.Threading.Dispatcher.UIThread.Post(async () => { _ = st.Tool switch { "annotate" => await ToolHooks.Annotate!(st.File), "perspective" => await ToolHooks.Perspective!(st.File), "removebg" => await ToolHooks.RemoveBg!(st.File), "erase" => await ToolHooks.Erase!(st.File), "privacy-guard" => await ToolHooks.Privacy!(st.File), "dupes" => await ToolHooks.Dupes!(st.File), "smartsearch" => await ToolHooks.SmartSearch!(st.File), "organize" => await ToolHooks.Organize!(st.File), "sheet" => await ToolHooks.SheetStudio!(st.File), _ => await ToolHooks.PdfEdit!(st.File) }; });
             if (Program.StartAi is { } ai)
                 Avalonia.Threading.Dispatcher.UIThread.Post(async () => { _ = await ToolHooks.Ai!(ai.Mode, ai.Files); });
             if (Program.StartPage is { } page && Vm.Nav.FirstOrDefault(n => n.Key == page) is { } nav) Vm.Selected = nav;
@@ -136,14 +156,11 @@ public partial class App : Application
                 else { win.Show(); win.Activate(); }
             }));
 
-            // once a day, look for a newer release; the tray gets an "Update to x" entry when there is one
-            if (Settings.CheckUpdates && DateTime.UtcNow - Settings.LastUpdateCheck > TimeSpan.FromHours(24))
-                _ = Task.Run(async () =>
-                {
-                    var r = await Updater.CheckAsync();
-                    Settings.LastUpdateCheck = DateTime.UtcNow; Settings.Save();
-                    if (r.Newer) Avalonia.Threading.Dispatcher.UIThread.Post(() => { if (_trayUpdate is { } m) { m.Header = Loc.T("tray.update", r.Version); m.IsVisible = true; } });
-                });
+            // look for a newer release when Mochi starts and every few hours after: the tray gets an "Update to x" entry and a pop-up shows once per version
+            var updateTimer = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromHours(6) };
+            updateTimer.Tick += (_, _) => _ = CheckForUpdate(false);
+            updateTimer.Start();
+            _ = CheckForUpdate(true);
         }
         base.OnFrameworkInitializationCompleted();
     }
@@ -170,7 +187,7 @@ public partial class App : Application
         };
 
         _trayUpdate = new NativeMenuItem("") { IsVisible = false };
-        _trayUpdate.Click += (_, _) => { Vm!.Selected = Vm.Nav.First(n => n.Key == "about"); win.Show(); win.Activate(); };
+        _trayUpdate.Click += (_, _) => { Vm!.Selected = Vm.Nav.First(n => n.Key == "about"); win.Show(); win.Activate(); _announced = ""; _ = CheckForUpdate(false); };
 
         var menu = new NativeMenu();
         menu.Add(_trayUpdate); menu.Add(open); menu.Add(pause); menu.Add(new NativeMenuItemSeparator()); menu.Add(quit);

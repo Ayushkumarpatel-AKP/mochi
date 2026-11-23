@@ -26,7 +26,7 @@ internal static class Program
             if (args[i] == "--background") Background = true;
             else if (args[i] == "--page" && i + 1 < args.Length) StartPage = args[++i];
             else if (args[i] == "--tool" && i + 1 < args.Length) Services.Engines.ToolHooks.InitialTool = args[++i];
-            else if (args[i] is "--annotate" or "--pdfedit" or "--perspective" or "--removebg" or "--erase" or "--dupes" or "--smartsearch" or "--organize" or "--sheet" && i + 1 < args.Length) StartTool = (args[i][2..], args[++i]);
+            else if (args[i] is "--annotate" or "--pdfedit" or "--perspective" or "--removebg" or "--erase" or "--privacy-guard" or "--dupes" or "--smartsearch" or "--organize" or "--sheet" && i + 1 < args.Length) StartTool = (args[i][2..], args[++i]);
             else if (args[i] == "--prompt" && i + 1 < args.Length) Views.AiCommandWindow.PendingPrompt = args[++i];   // with --ai ai:command: the request to plan
             else if (args[i] == "--ai" && i + 2 < args.Length) { StartAi = (args[i + 1], args.Skip(i + 2).ToList()); break; }
             else if (args[i] == "--donut") StartDonut.AddRange(args.Skip(i + 1));

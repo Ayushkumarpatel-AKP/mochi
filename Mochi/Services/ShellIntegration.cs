@@ -74,7 +74,7 @@ public static class SingleInstance
 /// <summary>Looks for a newer Mochi release on GitHub and can download and run its installer.</summary>
 public static class Updater
 {
-    public sealed record Release(bool Newer, string Version, string? AssetUrl, string? Error);
+    public sealed record Release(bool Newer, string Version, string? AssetUrl, string? Error, string? Notes = null);
 
     public static string Current => Assembly.GetEntryAssembly()?.GetName().Version is { } v ? $"{v.Major}.{v.Minor}.{v.Build}" : "1.0.0";
 
@@ -97,7 +97,8 @@ public static class Updater
                 ? a.EnumerateArray().Select(x => x.GetProperty("browser_download_url").GetString()!).FirstOrDefault(u => u.Contains("Setup", StringComparison.OrdinalIgnoreCase) && u.EndsWith(".exe", StringComparison.OrdinalIgnoreCase))
                 : null;
             var newer = Version.TryParse(tag, out var t) && Version.TryParse(Current, out var c) && t > c;
-            return new Release(newer, tag, asset, null);
+            var notes = d.RootElement.TryGetProperty("body", out var bd) ? bd.GetString() : null;
+            return new Release(newer, tag, asset, null, notes);
         }
         catch (Exception ex) { return new Release(false, Current, null, ex.Message); }
     }

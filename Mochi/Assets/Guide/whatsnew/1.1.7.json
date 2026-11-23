@@ -1,0 +1,26 @@
+{
+  "title": "What's new in Mochi 1.1.7",
+  "slides": [
+    {
+      "mascot": "hello",
+      "title": "Privacy Guard",
+      "body": "Before you share an ID, a form or a photo, Mochi finds what should stay private and covers it for good. All on your PC.",
+      "bullets": [
+        "Aadhaar, PAN, phone, email, card and account numbers",
+        "Faces, QR codes, names and addresses",
+        "Looks again at the result to be sure nothing is left"
+      ],
+      "tip": "Pick Privacy Guard in the donut. Check the boxes, drag to cover anything it missed."
+    },
+    {
+      "mascot": "hello",
+      "title": "Updates come to you",
+      "body": "When a new Mochi is out, a small window now tells you what is new and installs it with one click.",
+      "bullets": [
+        "Mochi checks when it starts and every few hours",
+        "Your settings are kept",
+        "You can turn the check off in Settings, General"
+      ]
+    }
+  ]
+}

@@ -145,6 +145,51 @@ public static class AiTools
         return keep;
     }
 
+    /// <summary>
+    /// Faces found with YuNet (a 230 KB detector that keeps small faces better than <see cref="FindFaces"/>). The picture is fitted into a
+    /// 640 square; callers look at parts of a big picture one by one so a small face is still big enough to see.
+    /// </summary>
+    public static List<(float Score, SKRect Box)> FindFacesYunet(byte[] px, int w, int h, float threshold = 0.5f)
+    {
+        const int N = 640;
+        var k = N / (double)Math.Max(w, h);
+        int nw = Math.Max(1, (int)(w * k)), nh = Math.Max(1, (int)(h * k));
+        var (small, _, _) = Resize(px, w, h, nw, nh);
+        var t = new DenseTensor<float>(new[] { 1, 3, N, N });
+        for (var y = 0; y < nh; y++)
+            for (var x = 0; x < nw; x++)
+            {
+                var i = (y * nw + x) * 4; var a = small[i + 3] / 255f;
+                t[0, 0, y, x] = small[i] * a + 255 * (1 - a); t[0, 1, y, x] = small[i + 1] * a + 255 * (1 - a); t[0, 2, y, x] = small[i + 2] * a + 255 * (1 - a);
+            }
+        var sess = Session("yunet.onnx");
+        var o = new Dictionary<string, float[]>();
+        lock (Gate)
+        {
+            using var res = sess.Run(new[] { NamedOnnxValue.CreateFromTensor("input", t) });
+            foreach (var r in res) o[r.Name] = r.AsTensor<float>().ToArray();
+        }
+        var cand = new List<(float S, SKRect R)>();
+        foreach (var stride in new[] { 8, 16, 32 })
+        {
+            var cls = o["cls_" + stride]; var obj = o["obj_" + stride]; var bb = o["bbox_" + stride];
+            var n = N / stride;
+            for (var i = 0; i < cls.Length; i++)
+            {
+                var sc = (float)Math.Sqrt(Math.Clamp(cls[i], 0f, 1f) * Math.Clamp(obj[i], 0f, 1f));
+                if (sc < threshold) continue;
+                int row = i / n, col = i % n;
+                var cx = (col + bb[i * 4]) * stride; var cy = (row + bb[i * 4 + 1]) * stride;
+                var bw = (float)Math.Exp(bb[i * 4 + 2]) * stride; var bh = (float)Math.Exp(bb[i * 4 + 3]) * stride;
+                cand.Add((sc, new SKRect((float)((cx - bw / 2) / k), (float)((cy - bh / 2) / k), (float)((cx + bw / 2) / k), (float)((cy + bh / 2) / k))));
+            }
+        }
+        var keep = new List<(float, SKRect)>();
+        foreach (var c in cand.OrderByDescending(c => c.S))
+            if (keep.All(q => Iou(q.Item2, c.R) < 0.3f)) keep.Add(c);
+        return keep;
+    }
+
     private static float Iou(SKRect a, SKRect b)
     {
         var i = SKRect.Intersect(a, b);

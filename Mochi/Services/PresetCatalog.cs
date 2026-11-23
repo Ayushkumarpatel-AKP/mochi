@@ -134,6 +134,7 @@ public static class PresetCatalog
         Add("faceblur", "Blur faces", "Image", ".png", mode: "faceblur");
         Add("enhance", "Auto enhance", "Image", ".png", mode: "enhance");
         Add("erase", "Erase object…", "Image", ".png", mode: "erase");
+        Add("privacy", "Privacy Guard (hide IDs, faces, numbers)…", "Image", ".png", mode: "privacy");
         Add("winocr", "Read text from picture", "Image", ".txt", mode: "winocr");
         Add("qrread", "Read QR or bar code", "Image", ".txt", mode: "qrread");
         Add("qrmake", "Make QR code from text", "Text", ".png", mode: "qrmake");

@@ -265,9 +265,9 @@ public partial class MainViewModel
         };
         App.Settings.Profiles.AddRange(new[]
         {
-            P("images", "png jpg jpeg webp bmp gif tif tiff ico heic avif", "png jpg removebg enhance upscale2 faceblur erase annotate",
-                "webp img-pdf hide winocr under-200 width-1080 strip turn-90"),
-            P("pdf", "pdf", "pdf-png pdf-txt docx xlsx pptx pdf-merge pdf-split pdfedit", "pdf-protect pdf-unlock pdf-range pdf-small nup4 rot90 strip doc-pdf"),
+            P("images", "png jpg jpeg webp bmp gif tif tiff ico heic avif", "png jpg privacy removebg enhance upscale2 faceblur annotate",
+                "webp img-pdf hide winocr under-200 width-1080 erase turn-90"),
+            P("pdf", "pdf", "pdf-png pdf-txt docx xlsx pptx pdf-merge pdf-split pdfedit", "pdf-protect pdf-unlock pdf-range pdf-small privacy rot90 strip doc-pdf"),
             P("video", "mp4 mov mkv webm avi m4v", "vid-discord vid-wa vid-mail vid-small clip captions vid-mp3 vid-gif",
                 "vid-mute flip-h turn-90 crop-1-1 crop-16-9 crop-auto vid-frame merge-vid"),
             P("audio", "mp3 wav flac m4a ogg opus aac", "mp3 m4a wav flac ogg captions aud-small merge-aud"),
