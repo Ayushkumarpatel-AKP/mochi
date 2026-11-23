@@ -262,11 +262,15 @@ public abstract class ToolbarBase : Window
         var order = Toolbar.Pins().Concat(profile?.PresetIds ?? new()).Concat(App.Settings.RecentPresets).Concat(profile?.BackPresetIds ?? new()).Distinct().ToList();
         var list = order.Select(id => usable.FirstOrDefault(t => t.Preset.Id == id)).OfType<Tool>().Take(n).ToList();
         if (list.Count < n && Files.Count > 0) list.AddRange(usable.Where(t => !list.Contains(t)).Take(n - list.Count));
-        // two AI tools lead the list whenever an AI is connected and they fit the files
-        var ai = new[] { "ai-summary", "ai-ask", "ai-explain", "ai-command" }.Select(id => usable.FirstOrDefault(t => t.Preset.Id == id)).OfType<Tool>().Take(2).ToList();
+        // three AI tools lead the list whenever an AI is connected and they fit the files, like the AI slice of the donut
+        var ai = AiTools().Take(3).ToList();
         if (ai.Count > 0) { list.RemoveAll(ai.Contains); list.InsertRange(0, ai); if (list.Count > n) list.RemoveRange(n, list.Count - n); }
         return list;
     }
+
+    /// <summary>The AI tools that fit the files, in the order the donut's AI slice shows them.</summary>
+    protected List<Tool> AiTools() => new[] { "ai-summary", "ai-ask", "ai-explain", "ai-rename", "ai-command" }
+        .Select(id => Usable().FirstOrDefault(t => t.Preset.Id == id)).OfType<Tool>().ToList();
 
     /// <summary>The "✦ Ask AI" row under search results: the typed words become the request for "Do it by typing".</summary>
     protected Control? AskAiRow(string q)

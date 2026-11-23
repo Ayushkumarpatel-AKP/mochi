@@ -7,6 +7,11 @@ Newest first. Every release also gets a page in `Mochi/Assets/Guide/whatsnew/<ve
 
 <!-- New things go here while you work, then move under a version heading when you release. -->
 
+## 1.1.6
+
+### Added
+- **AI tools in every toolbar style.** The panel has its own AI section, and the dock, command bar and tiles lead their suggestions with Summarise, Ask this file and Explain image, like the donut's AI slice.
+
 ## 1.1.5
 
 ### Fixed

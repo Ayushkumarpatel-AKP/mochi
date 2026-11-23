@@ -57,7 +57,16 @@ public sealed class QuickPanelWindow : ToolbarBase
             return;
         }
 
-        var suggested = Suggested(8);
+        var aiTools = AiTools();
+        if (aiTools.Count > 0)
+        {
+            _body.Children.Add(Heading("✦ AI"));
+            var aiGrid = new WrapPanel();
+            foreach (var t in aiTools) aiGrid.Children.Add(Chip(t));
+            _body.Children.Add(aiGrid);
+        }
+
+        var suggested = Suggested(8).Where(t => !aiTools.Contains(t)).ToList();
         if (suggested.Count > 0)
         {
             _body.Children.Add(Heading(Files.Count > 0 ? L("x.qp.suggested", "Suggested for these files") : L("x.qp.favourites", "Your favourites")));

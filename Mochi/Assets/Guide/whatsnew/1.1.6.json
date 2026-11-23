@@ -1,0 +1,15 @@
+{
+  "title": "What's new in Mochi 1.1.6",
+  "slides": [
+    {
+      "mascot": "hello",
+      "title": "AI in every style",
+      "body": "The AI tools are no longer only in the donut. The panel, dock, command bar and tiles now show them up front.",
+      "bullets": [
+        "The panel has its own AI section",
+        "Summarise, Ask this file and Explain image lead every suggested list"
+      ],
+      "tip": "Connect an AI in Settings, AI to see them."
+    }
+  ]
+}
